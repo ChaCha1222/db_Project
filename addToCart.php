@@ -1,20 +1,20 @@
 <?php
     session_start();
-    include "db_connect.php";
+    include "database_connection.php";
 
     if (isset($_SESSION['username'])) {
-        if ($_SERVER['REQUEST_METHOD'] === "POST" && isset($_POST['productId']) && isset($_POST['amount']) && isset($_POST['productAmount'])) {
-            $productId = $_POST['productId'];
+        if ($_SERVER['REQUEST_METHOD'] === "POST" && isset($_POST['p_id']) && isset($_POST['amount']) && isset($_POST['p_amount'])) {
+            $productId = $_POST['p_id'];
             $amount = $_POST['amount'];
-            $productAmount = $_POST['productAmount'];
+            $productAmount = $_POST['p_amount'];
 
             if ($amount > $productAmount) {
                 echo "購買數量超出庫存。";
             } else {
                 // 執行插入操作
-                $stmt = $db->prepare("INSERT INTO carts (buyerID, PID, amount) VALUES (:userID, :productID, :amount)");
-                $stmt->bindParam(':userID', $_SESSION['userID']);
-                $stmt->bindParam(':productID', $productId);
+                $stmt = $db->prepare("INSERT INTO carts (buyer_id, p_id, amount) VALUES (:u_id, :p_id, :amount)");
+                $stmt->bindParam(':u_id', $_SESSION['u_id']);
+                $stmt->bindParam(':p_id', $productId);
                 $stmt->bindParam(':amount', $amount);
                 
                 if ($stmt->execute()) {

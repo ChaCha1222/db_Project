@@ -58,7 +58,7 @@
         }
 
         .product {
-            background-color: #e0e0e0;
+            background-color: #fefefe;
             border: 1px solid #ccc;
             border-radius: 5px;
             padding: 10px;
@@ -77,7 +77,7 @@
         }
 
         .product button {
-            background-color: #45a049;
+            background-color: #AAAAFF;
             color: white;
             padding: 10px 20px;
             border: none;
@@ -88,7 +88,7 @@
         }
 
         .product button:hover {
-            background-color: #45a049;
+            background-color: #84C1FF;
         }
     </style>
 
@@ -131,8 +131,7 @@
                         <a href="product.php" class="nav-link">商品列表</a>
                         <a href="sellProduct.php" class="nav-link">上架商品</a>
                         <a href="myProducts.php" class="nav-link">我的商品</a>
-                        <a href="cart.php" class="nav-link">我的購物車</a>
-                        <a href="myOrders.php" class="nav-link">我的訂單</a>
+                        <a href="myCart.php" class="nav-link">我的購物車</a>
                     </div>
                     <li class="nav-item">
                         <a class="nav-link" href="aboutme.php">
@@ -222,7 +221,7 @@
                                 // 逐行讀取資料並輸出
                                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                                     if ($row['p_amount'] > 0) {
-                                        echo '<div class="products">';
+                                        echo '<div class="product">';
                                         echo '<img src="' . $row['p_picture'] . '" style="max-width: 400px; max-height: 500px;"><br>';
                                         echo "<p class='product'>賣家名稱: " . $row["username"] . "<br>商品名稱: " . $row["p_name"];
                                         echo "<br>商品價格: " . $row["p_price"] . "<br>數量: " . $row["p_amount"];
@@ -297,6 +296,32 @@
     <!-- <script
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCh39n5U-4IoWpsVGUHWdqB6puEkhRLdmI&callback=myMap"></script> -->
     <!-- End Google Map -->
+
+    <script>
+        function addToCart(p_id, p_name, p_amount, sellerID) {
+            // 檢查是否為目前使用者的商品
+            //alert(sellerID);
+            if (sellerID === "<?php echo $_SESSION['u_id']; ?>") {
+                alert("您無法將自己的商品加入購物車。");
+                return;
+            }
+
+            var amount = prompt("請輸入購買數量:", "1");
+            if (amount != null && amount != "") {
+                // 使用 Ajax 發送請求
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "addToCart.php", true);
+                xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState == 4 && xhr.status == 200) {
+                        alert(xhr.responseText);
+                    }
+                };
+                xhr.send("p_id=" + p_id + "&p_name=" + p_name + "&amount=" + amount + "&p_amount=" + p_amount);
+            }
+        }
+    </script>
+
 </body>
 
 </html>

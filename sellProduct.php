@@ -102,8 +102,7 @@
                         <a href="product.php" class="nav-link">商品列表</a>
                         <a href="sellProduct.php" class="nav-link">上架商品</a>
                         <a href="myProducts.php" class="nav-link">我的商品</a>
-                        <a href="cart.php" class="nav-link">我的購物車</a>
-                        <a href="myOrders.php" class="nav-link">我的訂單</a>
+                        <a href="myCart.php" class="nav-link">我的購物車</a>
                         <li class="nav-item">
                             <a class="nav-link" href="aboutme.php">
                                 <i class="fa fa-user" aria-hidden="true"></i>

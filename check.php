@@ -59,7 +59,7 @@
         }
 
         .product {
-            background-color: #e0e0e0;
+            background-color: #fefefe;
             border: 1px solid #ccc;
             border-radius: 5px;
             padding: 10px;
@@ -78,7 +78,7 @@
         }
 
         .product button {
-            background-color: red;
+            background-color: #AAAAFF;
             color: white;
             padding: 10px 20px;
             border: none;
@@ -89,15 +89,19 @@
         }
 
         .product button:hover {
-            background-color: #930000;
+            background-color: #84C1FF;
         }
     </style>
 
     <?php
     session_start();
     include "database_connection.php";
+    // 處理越權查看以及錯誤登入
     if (!isset($_SESSION['username'])) {
         echo "<script>alert('偵測到未登入'); window.location.href = 'login.php';</script>";
+        exit();
+    } else if ($_SESSION['role'] != "2") {
+        echo "<script>alert('權限錯誤'); window.location.href = 'logout.php';</script>";
         exit();
     }
     ?>
@@ -162,129 +166,70 @@
         <div class="container  ">
             <div class="heading_container heading_center">
                 <h2>
-                    我的商品
-                    <a href='editMyProducts.php'><button class='nav_search-btn'>編輯我的商品</button></a>
+                    結帳頁面
                 </h2>
-                <form method="GET" action="myProducts.php">
-                    <input name="keyword" placeholder="搜尋你的商品"></input>
-                    <button type="submit" name="searchBtn">搜尋</button>
-                    <button onclick="window.history.back()">取消搜尋</button>
-                </form>
             </div>
             <div class="row">
                 <div class="col-md-6">
                     <div class="detail-box">
                         <?php
-                        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-                            if (isset($_POST['deleteProduct'])) {
-                                $p_id = $_POST['p_id'];
-
-                                // Delete the product from the database
-                                try {
-                                    $sql = "DELETE FROM products WHERE p_id = :p_id";
-                                    $stmt = $db->prepare($sql);
-                                    $stmt->bindParam(':p_id', $p_id);
-                                    $stmt->execute();
-                                    // Redirect to the same page to update the product list
-                                    echo "<script>alert('刪除成功'); window.location.href = 'myProducts.php';</script>";
-                                    exit();
-                                } catch (PDOException $e) {
-                                    // Handle any errors
-                                    echo "Error: " . $e->getMessage();
-                                }
-                            }
-                        }
-
-                        // 設定每頁顯示的資料筆數
-                        $records_per_page = 5;
-
-                        // 初始化搜尋條件
-                        $search_keyword = '';
-
-                        // 檢查是否有搜尋關鍵字
-                        if (isset($_GET['keyword'])) {
-                            $search_keyword = $_GET['keyword'];
-                        }
-
-                        // 獲取當前頁碼
-                        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
-                            $current_page = (int) $_GET['page'];
-                        } else {
-                            $current_page = 1;
-                        }
-
-                        // 計算起始擷取的資料索引
-                        $start_index = ($current_page - 1) * $records_per_page;
-
                         try {
-                            // 準備 SQL 查詢，擷取指定範圍內的資料
-                            $sql = "SELECT * FROM products WHERE sellerID = :sellerID";
-
-                            // 添加搜尋條件
-                            if (!empty($search_keyword)) {
-                                $sql .= " AND p_name LIKE :keyword";
-                            }
-
-                            $sql .= " LIMIT :start_index, :records_per_page";
+                            // 準備 SQL 查詢，擷取資料
+                            $sql = "SELECT carts.*, products.p_name, products.p_picture, products.p_price 
+                                        FROM carts 
+                                        INNER JOIN products ON carts.p_id = products.p_id WHERE carts.buyer_id = :u_id";
 
                             // 準備查詢
                             $stmt = $db->prepare($sql);
+                            $stmt->bindParam(":u_id", $_SESSION['u_id']);
+                            // 初始化總價格
+                            $totalPrice = 0;
 
-                            // 綁定參數
-                            $stmt->bindParam(':sellerID', $_SESSION['u_id']);
-                            $stmt->bindParam(':start_index', $start_index, PDO::PARAM_INT);
-                            $stmt->bindParam(':records_per_page', $records_per_page, PDO::PARAM_INT);
-
-                            // 添加搜尋參數
-                            if (!empty($search_keyword)) {
-                                $keyword = '%' . $search_keyword . '%';
-                                $stmt->bindParam(':keyword', $keyword, PDO::PARAM_STR);
-                            }
-
-                            // 執行查詢
                             $stmt->execute();
 
-                            // 檢查是否有資料
-                            if ($stmt->rowCount() > 0) {
-                                // 逐行讀取資料並輸出
-                                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                                    echo "<div class='product'>";
-                                    echo '<img src="' . $row['p_picture'] . '" style="max-width: 400px; max-height: 500px;"><br>';
-                                    echo "<p>商品名稱: " . $row["p_name"] . "</p><br>";
-                                    echo "<p>商品價格: " . $row["p_price"] . "</p><br>";
-                                    echo "<p>數量: " . $row["p_amount"] . "</p><br>";
-                                    echo "<p>商品介紹: " . "<br>" . $row["p_intro"] . "</p><br>";
-                                    echo "<form method='POST'>";
-                                    echo "<input type='hidden' name='p_id' value='" . $row["p_id"] . "'>";
-                                    echo "<button type='submit' name='deleteProduct'>刪除商品</button>";
-                                    echo "</form>";
-                                    echo "</div>";
-                                }
-                            } else {
-                                echo "0 筆結果";
+                            // 輸出表格標題
+                            echo "<table><tr><th>產品名稱</th><th>數量</th><th>單價</th><th>總價</th><th>圖片</th><th>操作</th></tr>";
+
+                            // 處理每一行資料
+                            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                                $productName = htmlspecialchars($row['p_name']);
+                                $productAmount = htmlspecialchars($row['amount']);
+                                $productPrice = htmlspecialchars($row['p_price']);
+                                $productTotalPrice = $row['amount'] * $row['p_price'];
+                                $productID = $row['p_id'];
+
+                                // 輸出該產品的資料
+                                echo "<tr>";
+                                echo "<td>$productName</td>";
+                                echo "<td>&nbsp;&nbsp;$productAmount&nbsp;&nbsp;</td>";
+                                echo "<td>&nbsp;&nbsp;$productPrice&nbsp;&nbsp;</td>";
+                                echo "<td>&nbsp;&nbsp;$productTotalPrice&nbsp;&nbsp;</td>";
+                                echo '<td><img src="' . $row["p_picture"] . '" style="max-width: 300px; max-height: 300px;"><br></td>';
+                                echo "<td><form action='checkout.php' method='post'>";
+                                echo "<input type='hidden' name='productAmount' value='$productAmount'>";
+                                echo "<input type='hidden' name='productID' value='$productID'>";
+                                echo "<input type='hidden' name='productTotalPrice' value='$productTotalPrice'>";
+                                echo "</form></td>";
+                                echo "</tr>";
+
+                                // 加總價格
+                                $totalPrice += $productTotalPrice;
+
+                                // 添加分隔行
+                                echo "<tr><td colspan='4'></td></tr>";
                             }
 
-                            if (!empty($search_keyword)) {
-                                $total_records_stmt = $db->prepare("SELECT COUNT(*) FROM products WHERE sellerID = :sellerID AND p_name LIKE :keyword");
-                                $total_records_stmt->bindParam(':sellerID', $_SESSION['u_id'], PDO::PARAM_INT);
-                                $total_records_stmt->bindParam(':keyword', $keyword);
-                                $total_records_stmt->execute();
-                                $total_records = $total_records_stmt->fetchColumn();
-                            } else {
-                                $total_records_stmt = $db->prepare("SELECT COUNT(*) FROM products WHERE sellerID = :sellerID ");
-                                $total_records_stmt->bindParam(':sellerID', $_SESSION['u_id'], PDO::PARAM_INT);
-                                $total_records_stmt->execute();
-                                $total_records = $total_records_stmt->fetchColumn();
-                            }
-                            $total_pages = ceil($total_records / $records_per_page);
+                            // 輸出總價格
+                            echo "</table>";
+                            echo "<br>商品總價格: $" . $totalPrice;
+                            echo "<form action=\"checkout.php\" method=\"post\">";
+                            echo "<br>";
+                            echo "<button type=\"submit\" name=\"checkout\" class=\"btn btn-primary\" style=\"background-color: #7D7DFF; color: #ffffff;\">結帳</button>";
+                            echo "</form>";
 
-                            // 顯示分頁連結
-                            echo "<br>分頁";
-                            for ($i = 1; $i <= $total_pages; $i++) {
-                                echo "<a href='?page=$i'>$i</a> ";
-                            }
+
                         } catch (PDOException $e) {
-                            // Handle any errors
+                            // 處理錯誤
                             echo "Error: " . $e->getMessage();
                         }
                         ?>
@@ -295,7 +240,6 @@
     </section>
 
     <!-- end about section -->
-
 
     <!-- jQery -->
     <script type="text/javascript" src="js/jquery-3.4.1.min.js"></script>
@@ -314,7 +258,6 @@
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCh39n5U-4IoWpsVGUHWdqB6puEkhRLdmI&callback=myMap">
     </script>
     <!-- End Google Map -->
-
 </body>
 
 </html>
