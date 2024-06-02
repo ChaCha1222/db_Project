@@ -36,9 +36,10 @@
 
     <!-- Template Stylesheet -->
     <link href="css/style.css" rel="stylesheet">
+
     <?php
-    include "database_connection.php";
     session_start();
+    include "database_connection.php";
     if (!isset($_SESSION['username'])) {
         echo "<script>alert('偵測到未登入'); window.location.href = 'login.php';</script>";
         exit();
@@ -87,23 +88,31 @@
 
         <!-- header section strats -->
         <nav class="navbar navbar-expand-lg bg-white navbar-light sticky-top p-0 wow fadeIn" data-wow-delay="0.1s">
-            <a href="product.php" class="navbar-brand d-flex align-items-center px-4 px-lg-5">
-                <h1 class="m-0 custom-title">丹尼斯的交通裁決所</h1>
-            </a>
-            <button type="button" class="navbar-toggler me-4" data-bs-toggle="collapse"
-                data-bs-target="#navbarCollapse">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarCollapse">
-                <div class="navbar-nav ms-auto p-4 p-lg-0">
-                    <a href="product.php" class="nav-link">商品列表</a>
-                    <a href="sellProducts.php" class="nav-link">我的上架列表</a>
-                    <a href="cart.php" class="nav-link">我的購物車</a>
-                    <a href="myOrders.php" class="nav-link">我的訂單</a>
-                    <a href="myAccount.php" class="nav-link"><?php echo "歡迎，" . $_SESSION['userRealName']; ?></a>
+            <a class="custom-title" href="index.php">
+                <span>
+                    丹尼斯的交通裁決所
+                </span>
+                </a>
+                <button type="button" class="navbar-toggler me-4" data-bs-toggle="collapse"
+                    data-bs-target="#navbarCollapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarCollapse">
+                    <div class="navbar-nav ms-auto p-4 p-lg-0">
+                        <a href="product.php" class="nav-link">商品列表</a>
+                        <a href="sellProduct.php" class="nav-link">上架商品</a>
+                        <a href="myProducts.php" class="nav-link">我的商品</a>
+                        <a href="cart.php" class="nav-link">我的購物車</a>
+                        <a href="myOrders.php" class="nav-link">我的訂單</a>
+                        <li class="nav-item">
+                            <a class="nav-link" href="aboutme.php">
+                                <i class="fa fa-user" aria-hidden="true"></i>
+                                <?php echo $_SESSION['username']; ?>的個人資訊
+                            </a>
+                        </li>
+                    </div>
+                    <a href="logout.php" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">登出</a>
                 </div>
-                <a href="logout.php" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">登出</a>
-            </div>
         </nav>
         <!-- end header section -->
     </div>
@@ -139,7 +148,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="p_picture">商品封面圖片:</label>
-                                <input type="file" class="form-control-file" id="p_picture" name="p_picture" required>
+                                <input type="text" class="form-control" id="p_picture" name="p_picture" required>
                             </div>
                             <button type="submit" class="btn btn-primary mt-3" name="uploadBtn">上架</button>
                             <button type="reset" class="btn btn-secondary mt-3" name="resetBtn">重設</button>
@@ -155,20 +164,22 @@
                                         $productPrice = $_POST['p_price'];
                                         $productAmount = $_POST['p_amount'];
                                         $productIntro = $_POST['p_intro'];
-                                        $productCover = $_FILES['p_picture'];
+                                        $productCover = $_POST['p_picture'];
+                                        $sellerID = $_SESSION['u_id'];
 
                                         try {
-                                            $imageContent = file_get_contents($productCover["tmp_name"]);
+
 
                                             // Prepare INSERT statement
-                                            $stmt = $db->prepare("INSERT INTO `products` (`p_name`, `p_price`, `p_amount`, `p_intro`, `p_picture`) VALUES (:p_name, :p_price, :p_amount, :p_intro, :p_picture)");
+                                            $stmt = $db->prepare("INSERT INTO `products` (`p_name`, `p_price`, `p_amount`, `p_intro`, `p_picture`, `sellerID`) VALUES (:p_name, :p_price, :p_amount, :p_intro, :p_picture, :sellerID)");
 
                                             // Bind parameters
                                             $stmt->bindParam(':p_name', $productName);
                                             $stmt->bindParam(':p_price', $productPrice);
                                             $stmt->bindParam(':p_amount', $productAmount);
                                             $stmt->bindParam(':p_intro', $productIntro);
-                                            $stmt->bindParam(':p_picture', $imageContent, PDO::PARAM_LOB);
+                                            $stmt->bindParam(':p_picture', $productCover);
+                                            $stmt->bindParam(':sellerID', $sellerID, PDO::PARAM_INT);
 
                                             // Execute the query
                                             if ($stmt->execute()) {

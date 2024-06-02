@@ -1,16 +1,19 @@
-<?php
-session_start();
-?>
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
-    <meta charset="utf-8">
-    <title>丹尼斯的保鮮盒</title>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <meta content="" name="keywords">
-    <meta content="" name="description">
+    <!-- Basic -->
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <!-- Mobile Metas -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <!-- Site Metas -->
+    <meta name="keywords" content="" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <link rel="shortcut icon" href="images/favicon.png" type="">
 
+    <title> 丹尼斯的交通裁決所 </title>
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,7 +35,17 @@ session_start();
 
     <!-- Template Stylesheet -->
     <link href="css/style.css" rel="stylesheet">
+
     <style>
+        body {
+            background-color: #f0f8ff;
+        }
+
+        .container {
+            margin: 0 auto;
+            width: 600px;
+        }
+
         .custom-title {
             color: #28004D;
             font-size: 24px;
@@ -40,414 +53,250 @@ session_start();
             padding: 5px 10px;
         }
 
-        body {
-            background-color: #f0f8ff;
+        .navbar {
+            background-color: #FFFFFF;
         }
 
-        /* 基本重置和字體設置 */
-        h1,
-        h2,
-        h3,
-        p {
-            margin: 0;
-            padding: 0;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            color: #333;
-        }
-
-        /* 主容器設計，包含背景和陰影 */
-        .container_list {
-            width: 90%;
-            margin: 20px auto;
-            background-color: #f4f8ff;
-            /* 淺藍色背景 */
-            padding: 20px;
-            border-radius: 8px;
-            /* 圓角邊框 */
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-            /* 輕微的陰影 */
-        }
-
-        /* 排序條樣式 */
-        .sort-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .sort-bar select,
-        .sort-bar input[type="text"],
-        .sort-bar input[type="submit"] {
-            padding: 10px 15px;
-            margin-right: 10px;
-            border: 1px solid #d1e3ff;
-            /* 淺藍色邊框 */
-            border-radius: 6px;
-            /* 圓角邊框 */
-            background-color: #ffffff;
-            /* 白色背景 */
-        }
-
-        .sort-bar input[type="submit"] {
-            cursor: pointer;
-            background-color: #007bff;
-            /* 較深的藍色背景 */
-            color: white;
-            border: none;
-        }
-
-        h3 {
-            font-size: 1.5rem;
-            color: #0056b3;
-            /* 淺藍色文字 */
-            margin-bottom: 20px;
-        }
-
-        /* 產品列表樣式 */
-        .product-list {
-            list-style: none;
-            padding: 0;
-        }
-
-        .product-list .product {
-            display: flex;
-            align-items: center;
-            border-bottom: 1px solid #e2e5ec;
-            /* 更淺的藍色分隔線 */
-            padding: 10px 0;
-        }
-
-        .product-list .product img {
-            width: 100px;
-            /* 保持圖片為方形 */
-            height: 100px;
-            object-fit: cover;
-            /* 保證圖片充滿容器 */
-            margin-right: 20px;
+        .product {
+            background-color: #e0e0e0;
+            border: 1px solid #ccc;
             border-radius: 5px;
-            /* 圓角 */
-        }
-
-        .product-list .product-info {
-            flex-grow: 1;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .product-list .product-info .name,
-        .product-list .product-info .price,
-        .product-list .product-info .upload-date {
-            margin: 0 10px;
-        }
-
-        /* 分頁樣式 */
-        .pagination {
-            list-style: none;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            margin-top: 20px;
-        }
-
-        .pagination .page-item {
-            margin: 0 5px;
-        }
-
-        .pagination .page-link {
-            display: block;
-            padding: 8px 12px;
-            background-color: #d1e3ff;
-            color: #0056b3;
-            border-radius: 4px;
-            text-decoration: none;
-        }
-
-        .pagination .page-link:hover {
-            background-color: #b9d1f8;
-        }
-
-        .add-to-cart {
-            padding: 10px 20px;
-            font-size: 1rem;
-            color: white;
-            background: linear-gradient(145deg, #006bff, #0056b3);
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
-        }
-
-        .add-to-cart:hover {
-            background: linear-gradient(145deg, #0056b3, #0041a8);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.24);
-        }
-
-        .add-to-cart:active {
-            background: #0041a8;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
-        }
-
-        table {
-            width: 100%;
-            /* 表格寬度占滿容器 */
-            border-collapse: collapse;
-            /* 邊框合併 */
-            background-color: #f0f8ff;
-            /* 淺藍色背景 */
-            font-family: Arial, sans-serif;
-            /* 使用Arial或無襯線字體 */
-        }
-
-        /* 表頭樣式 */
-        th {
-            background-color: #e0efff;
-            /* 表頭使用略深的藍色 */
-            color: #333;
-            /* 文字顏色為深灰 */
             padding: 10px;
-            /* 內邊距 */
-            font-size: 16px;
-            /* 字體大小 */
-            border-bottom: 2px solid #ccc;
-            /* 底部有灰色邊框 */
+            margin-bottom: 20px;
+            width: 400px;
         }
 
-        /* 表格行樣式 */
-        td {
-            text-align: left;
-            /* 文字居中顯示 */
-            padding: 8px;
-            /* 內邊距 */
+        .product img {
+            width: 100%;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .product p {
             font-size: 14px;
-            /* 字體大小 */
         }
 
-        /* 表格行條紋效果 */
-        tr:nth-child(odd) {
-            background-color: #e6f1ff;
-            /* 淺藍色條紋 */
-        }
-
-        /* 按鈕樣式 */
-        button {
-            background-color: #333;
-            /* 按鈕背景色 */
+        .product button {
+            background-color: #45a049;
             color: white;
-            /* 按鈕文字顏色 */
-            padding: 6px 12px;
-            /* 內邊距 */
+            padding: 10px 20px;
             border: none;
-            /* 無邊框 */
-            border-radius: 4px;
-            /* 圓角邊框 */
+            border-radius: 5px;
             cursor: pointer;
-            /* 鼠標樣式 */
-            transition: background-color 0.3s;
-            /* 過渡效果 */
+            font-size: 16px;
+            margin-top: 10px;
         }
 
-        /* 鼠標懸停在按鈕上時的效果 */
-        button:hover {
-            background-color: #0056b3;
-            /* 按鈕深藍色 */
-        }
-
-        /* 產品圖片樣式 */
-        img {
-            width: 100px;
-            /* 圖片寬度 */
-            height: auto;
-            高度自動
-        }
-
-        .product-link {
-            text-decoration: none;
-            /* Removes underline */
-            color: inherit;
-            /* Inherits text color from parent */
-            display: flex;
-            align-items: center;
-            /* Aligns the image and text vertically */
-        }
-
-        .product-link:hover {
-            text-decoration: underline;
-            /* Adds an underline on hover for better user interaction feedback */
+        .product button:hover {
+            background-color: #45a049;
         }
     </style>
+
     <?php
-
-    // include "database_connection.php";
-    
-    // $recordsPerPage = 10;
-    // $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-    // $offset = ($page - 1) * $recordsPerPage;
-    
-
-    // $sortTime = $_GET['sort-time'] ?? 'newest';
-    // $sortPrice = $_GET['sort-price'] ?? 'highest';
-    // $sortCategory = $_GET['sort-category'] ?? '';
-    // $searchTerm = $_GET['search'] ?? '';
-    
-
-    // $sql = "SELECT * FROM `product` WHERE `display` = 1";
-    
-
-    // if (!empty($searchTerm)) {
-    //     $sql .= " AND pName LIKE :searchTerm";
-    // }
-    
-
-    // if (!empty($sortCategory)) {
-    //     $sql .= " AND type = :sortCategory";
-    // }
-    
-
-    // $orderClause = [];
-    // if ($sortTime == 'newest') {
-    //     $orderClause[] = "uploadDate DESC";
-    // } elseif ($sortTime == 'oldest') {
-    //     $orderClause[] = "uploadDate ASC";
-    // }
-    // if ($sortPrice == 'highest') {
-    //     $orderClause[] = "price DESC";
-    // } elseif ($sortPrice == 'lowest') {
-    //     $orderClause[] = "price ASC";
-    // }
-    // if (!empty($orderClause)) {
-    //     $sql .= " ORDER BY " . implode(', ', $orderClause);
-    // }
-    
-
-    // $sql .= " LIMIT :offset, :recordsPerPage";
-    
-    // $stmt = $db->prepare($sql);
-    // if (!empty($searchTerm)) {
-    //     $searchTerm = "%" . $searchTerm . "%";
-    //     $stmt->bindParam(':searchTerm', $searchTerm, PDO::PARAM_STR);
-    // }
-    // if (!empty($sortCategory)) {
-    //     $stmt->bindParam(':sortCategory', $sortCategory, PDO::PARAM_STR);
-    // }
-    // $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
-    // $stmt->bindParam(':recordsPerPage', $recordsPerPage, PDO::PARAM_INT);
-    // $stmt->execute();
-    
-
-    // $countSql = "SELECT COUNT(*) FROM `product` WHERE `display` = 1";
-    
-    // $countStmt = $db->prepare($countSql);
-    
-    // $countStmt->execute();
-    // $totalRecords = $countStmt->fetchColumn();
-    // $numPages = ceil($totalRecords / $recordsPerPage);
-    ?>
-    <?php
-    // if (($_SERVER['REQUEST_METHOD'] === "POST")&&($_POST['addToCart'])){
-    //     $checkCartExists = $db->prepare("SELECT COUNT(*) FROM cart WHERE PID = :PID AND ID = :ID");
-    //     $checkCartExists -> bindParam(':PID', $_POST['addToCartPID']);
-    //     $checkCartExists -> bindParam(':ID', $_SESSION['user_id']);
-    //     $checkCartExists -> execute();
-    //     if($checkCartExists->fetchColumn() > 0) {
-    //         ob_end_flush();
-    //         echo "<script>alert('該物品先前已加入我的購物車');</script>";
-    //         echo '<script>window.location.href="organs.php";</script>';
-    //     } else {
-    //         $stmt = $db->prepare("INSERT INTO `cart`(`ID`, `PID`) VALUES (:userID, :PID)");
-    //         $stmt -> bindParam(':userID', $_SESSION['user_id']);
-    //         $stmt -> bindParam(':PID', $_POST['addToCartPID']);
-    //         $stmt->execute();
-    //         ob_end_flush();
-    //         echo "<script>alert('已加入我的購物車');</script>";
-    //         echo '<script>window.location.href="organs.php";</script>';
-    //     }
-    // }
+    include "database_connection.php";
+    session_start();
+    if (!isset($_SESSION['username'])) {
+        echo "<script>alert('偵測到未登入'); window.location.href = 'login.php';</script>";
+        exit();
+    }
     ?>
 </head>
 
-<body>
+<body class="sub_page">
 
-    <!-- Navbar Start -->
-    <nav class="navbar navbar-expand-lg bg-white navbar-light sticky-top p-0 wow fadeIn" data-wow-delay="0.1s">
-        <a href="product.php" class="navbar-brand d-flex align-items-center px-4 px-lg-5">
-            <h1 class="m-0 custom-title"></i>丹尼斯的交通裁決所</h1>
-        </a>
-        <button type="button" class="navbar-toggler me-4" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarCollapse">
-            <div class="navbar-nav ms-auto p-4 p-lg-0">
-                <a href="product.php" class="nav-link">商品列表</a>
-                <a href="sellProduct.php" class="nav-link">我的上架列表</a>
-                <a href="cart.php" class="nav-link">我的購物車</a>
-                <a href="myOrders.php" class="nav-link">我的訂單</a>
-                <a href="myAccount.php" class="nav-link"><?php echo "歡迎，" . $_SESSION['userRealName']; ?></a>
-                <!-- <a href="aboutUs" class="nav-item nav-link">關於我們</a> -->
+    <div class="hero_area">
+
+        <div class="hero_bg_box">
+            <div class="bg_img_box">
+                <img src="images/hero-bg.png" alt="">
             </div>
-            <a href="logout.php" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">登出</a>
         </div>
-    </nav>
-    <!-- Navbar End -->
 
+        <!-- header section strats -->
+        <nav class="navbar navbar-expand-lg bg-white navbar-light sticky-top p-0 wow fadeIn " data-wow-delay="0.1s">
+            <a class="custom-title" href="index.php">
+                <span>
+                    丹尼斯的交通裁決所
+                </span>
+            </a>
 
-    <!-- Header Start -->
-    <div class="bg-light rounded h-100 d-flex align-items-center p-5">
-        <div class="container_list">
-            <h3>商品列表</h3>
-            <form action="product.php" method="GET">
-                <input name="keyword" placeholder="搜尋你有興趣的商品"></input>
-                <button type="submit" name="searchBtn">搜尋</button>
-                <button onclick="window.history.back()">取消搜尋</button>
-            </form>
-            <ul class="product-list">
-                <?php
-                // echo "<table><tr><th>名稱</th><th>價格</th><th>上架時間</th><th></th></tr>";
-                // while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                //     echo "<tr>";
-                //     echo "<td>";
-                //     echo "<a href='organDetail.php?pid=".$row['PID']."' class='product-link'>";
-                //     echo "<img src='data:image/jpeg;base64,".base64_encode($row['image'])."' alt='Product Image' style='height:100px; vertical-align:middle; margin-right:10px;'>";
-                //     echo htmlspecialchars($row['pName']);
-                //     echo "</a>";
-                //     echo "</div></td>";
-                //     echo "<td><span class='price'>$" . number_format($row['price'], 2) . "</span></td>";
-                //     echo "<td><span class='upload-date'>" . $row['uploadDate'] . "</span></td>";
-                //     echo "<td><form action='organs.php' method='post'><input name='addToCartPID' value='".$row['PID']."' type='hidden'><button type='submit' name='addToCart' value='true' class='add-to-cart'>加入我的購物車</button></form></td>";
-                //     echo "</tr>";
-                // }
-                // echo "</table>";
-                ?>
-            </ul>
-            <nav>
-                <ul class="pagination">
-                    <?php
-                    // for ($page = 1; $page <= $numPages; $page++) {
-                    //     echo '<li class="page-item"><a class="page-link" href="?page=' . $page . '">' . $page . '</a></li>';
-                    // }
-                    ?>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class=""> </span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <ul class="navbar-nav ms-auto p-4 p-lg-0  ">
+                    <div class="navbar-nav ms-auto p-4 p-lg-0">
+                        <a href="product.php" class="nav-link">商品列表</a>
+                        <a href="sellProduct.php" class="nav-link">上架商品</a>
+                        <a href="myProducts.php" class="nav-link">我的商品</a>
+                        <a href="cart.php" class="nav-link">我的購物車</a>
+                        <a href="myOrders.php" class="nav-link">我的訂單</a>
+                    </div>
+                    <li class="nav-item">
+                        <a class="nav-link" href="aboutme.php">
+                            <i class="fa fa-user" aria-hidden="true"></i>
+                            <?php echo $_SESSION['username']; ?>的個人資訊
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="logout.php" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">登出</a>
+                    </li>
                 </ul>
-            </nav>
-        </div>
+            </div>
+        </nav>
+        <!-- end header section -->
     </div>
-    <!-- Header End -->
 
-    <!-- JavaScript Libraries -->
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="lib/wow/wow.min.js"></script>
-    <script src="lib/easing/easing.min.js"></script>
-    <script src="lib/waypoints/waypoints.min.js"></script>
-    <script src="lib/counterup/counterup.min.js"></script>
-    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
-    <script src="lib/tempusdominus/js/moment.min.js"></script>
-    <script src="lib/tempusdominus/js/moment-timezone.min.js"></script>
-    <script src="lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
+    <!-- about section -->
 
-    <!-- Template Javascript -->
-    <script src="js/main.js"></script>
+    <section class="about_section layout_padding">
+        <div class="container  ">
+            <div class="heading_container heading_center">
+                <h2>
+                    商品列表
+                </h2>
+                <form method="GET" action="product.php">
+                    <input name="keyword" placeholder="搜尋你有興趣的商品"></input>
+                    <button type="submit" name="searchBtn">搜尋</button>
+                    <button onclick="window.history.back()">取消搜尋</button>
+                </form>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="detail-box">
+                        <?php
+                        try {
+                            // 設定每頁顯示的資料筆數
+                            $records_per_page = 5;
+
+                            // 初始化搜尋條件
+                            $search_keyword = '';
+
+                            // 檢查是否有搜尋關鍵字
+                            if (isset($_GET['keyword'])) {
+                                $search_keyword = $_GET['keyword'];
+                            }
+
+                            // 獲取當前頁碼
+                            if (isset($_GET['page']) && is_numeric($_GET['page'])) {
+                                $current_page = (int) $_GET['page'];
+                            } else {
+                                $current_page = 1;
+                            }
+
+                            // 計算起始擷取的資料索引
+                            $start_index = ($current_page - 1) * $records_per_page;
+
+                            // 準備 SQL 查詢，擷取指定範圍內的資料
+                            $sql = "SELECT products.*, users.username 
+            FROM products 
+            JOIN users ON products.sellerID = users.u_id";
+
+                            // 添加搜尋條件
+                            if (!empty($search_keyword)) {
+                                $sql .= " WHERE p_name LIKE :keyword";
+                            }
+
+                            $sql .= " LIMIT :start_index, :records_per_page";
+
+                            // 準備查詢
+                            $stmt = $db->prepare($sql);
+
+                            // 綁定參數
+                            $stmt->bindParam(':start_index', $start_index, PDO::PARAM_INT);
+                            $stmt->bindParam(':records_per_page', $records_per_page, PDO::PARAM_INT);
+
+                            // 添加搜尋參數
+                            if (!empty($search_keyword)) {
+                                $keyword = '%' . $search_keyword . '%';
+                                $stmt->bindParam(':keyword', $keyword, PDO::PARAM_STR);
+                            }
+
+                            // 執行查詢
+                            $stmt->execute();
+
+                            // 檢查是否有資料
+                            if ($stmt->rowCount() > 0) {
+                                // 逐行讀取資料並輸出
+                                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                                    if ($row['p_amount'] > 0) {
+                                        echo '<div class="products">';
+                                        echo '<img src="' . $row['p_picture'] . '" style="max-width: 400px; max-height: 500px;"><br>';
+                                        echo "<p class='product'>賣家名稱: " . $row["username"] . "<br>商品名稱: " . $row["p_name"];
+                                        echo "<br>商品價格: " . $row["p_price"] . "<br>數量: " . $row["p_amount"];
+                                        echo "<br>商品介紹: " . "<br>" . $row["p_intro"] . "</p>";
+                                        echo "<button class='product' onclick='addToCart(" . $row['p_id'] . ", \"" . $row['p_name'] . "\", " . $row['p_amount'] . ", \"" . $row['sellerID'] . "\")'>加入購物車</button>";
+                                        echo '</div>';
+                                    }
+                                }
+                            } else {
+                                echo "0 筆結果";
+                            }
+
+                            // 計算符合搜尋條件的總共的資料筆數
+                            $total_records_sql = "SELECT COUNT(*) FROM products";
+                            if (!empty($search_keyword)) {
+                                $total_records_sql .= " WHERE p_name LIKE :keyword";
+                            }
+                            $total_records_stmt = $db->prepare($total_records_sql);
+
+                            // 添加搜尋參數
+                            if (!empty($search_keyword)) {
+                                $total_records_stmt->bindParam(':keyword', $keyword, PDO::PARAM_STR);
+                            }
+
+                            $total_records_stmt->execute();
+                            $total_records = $total_records_stmt->fetchColumn();
+
+                            // 計算總頁數
+                            $total_pages = ceil($total_records / $records_per_page);
+
+                            // 顯示分頁連結
+                            echo "<br>分頁";
+                            for ($i = 1; $i <= $total_pages; $i++) {
+                                // 顯示分頁連結時也包含搜尋關鍵字
+                                $page_link = "?page=$i";
+                                if (!empty($search_keyword)) {
+                                    $page_link .= "&keyword=$search_keyword";
+                                }
+                                // 檢查當前頁碼是否小於或等於總頁數，只有在這種情況下才生成分頁連結
+                                if ($i <= $total_pages) {
+                                    echo "<a href='$page_link'>$i</a> ";
+                                }
+                            }
+                        } catch (PDOException $e) {
+                            // 處理任何錯誤
+                            echo "Error: " . $e->getMessage();
+                        }
+                        ?>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- end about section -->
+
+    <!-- jQery -->
+    <script type="text/javascript" src="js/jquery-3.4.1.min.js"></script>
+    <!-- popper js -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script> -->
+    <!-- bootstrap js -->
+    <!-- <script type="text/javascript" src="js/bootstrap.js"></script> -->
+    <!-- owl slider -->
+    <!-- <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script> -->
+    <!-- custom js -->
+    <script type="text/javascript" src="js/custom.js"></script>
+    <!-- Google Map -->
+    <!-- <script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCh39n5U-4IoWpsVGUHWdqB6puEkhRLdmI&callback=myMap"></script> -->
+    <!-- End Google Map -->
 </body>
 
 </html>
