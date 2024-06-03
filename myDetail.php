@@ -37,6 +37,15 @@
     <!-- Template Stylesheet -->
     <link href="css/style.css" rel="stylesheet">
 
+    <?php
+    session_start();
+    include "database_connection.php";
+    if (!isset($_SESSION['username'])) {
+        echo "<script>alert('偵測到未登入'); window.location.href = 'login.php';</script>";
+        exit();
+    }
+    ?>
+
     <style>
         body {
             background-color: #f0f8ff;
@@ -59,7 +68,7 @@
         }
 
         .product {
-            background-color: #e0e0e0;
+            background-color: #fefefe;
             border: 1px solid #ccc;
             border-radius: 5px;
             padding: 10px;
@@ -78,7 +87,7 @@
         }
 
         .product button {
-            background-color: red;
+            background-color: #AAAAFF;
             color: white;
             padding: 10px 20px;
             border: none;
@@ -89,23 +98,9 @@
         }
 
         .product button:hover {
-            background-color: #930000;
-        }
-
-        .text-color {
-            color: #000000;
-
+            background-color: #84C1FF;
         }
     </style>
-
-    <?php
-    include "database_connection.php";
-    session_start();
-    if (!isset($_SESSION['username'])) {
-        echo "<script>alert('偵測到未登入'); window.location.href = 'login.php';</script>";
-        exit();
-    }
-    ?>
 </head>
 
 <body class="sub_page">
@@ -121,8 +116,7 @@
         <!-- header section strats -->
         <header class="header_section">
             <div class="container-fluid">
-                <nav class="navbar navbar-expand-lg bg-white navbar-light sticky-top p-0 wow fadeIn "
-                    data-wow-delay="0.1s">
+                <nav class="navbar navbar-expand-lg custom_nav-container ">
                     <a class="custom-title" href="index.php">
                         <span>
                             丹尼斯的交通裁決所
@@ -141,7 +135,7 @@
                                 <a href="product.php" class="nav-link">商品列表</a>
                                 <a href="sellProduct.php" class="nav-link">上架商品</a>
                                 <a href="myProducts.php" class="nav-link">我的商品</a>
-                                <a href="cart.php" class="nav-link">我的購物車</a>
+                                <a href="myCart.php" class="nav-link">我的購物車</a>
                                 <a href="myDetail.php" class="nav-link">購買紀錄</a>
                             </div>
                             <li class="nav-item">
@@ -168,14 +162,15 @@
         <div class="container  ">
             <div class="heading_container heading_center">
                 <h2>
-                    我的商品
-                    <a href='myProducts.php'><button class='nav_search-btn'>回到管理商品介面</button></a>
+                    購買紀錄
                 </h2>
-                <form method="GET" action="editMyProducts.php">
-                    <input name="keyword" placeholder="搜尋你的商品名稱"></input>
-                    <button type="submit" name="searchBtn">搜尋</button>
-                    <button onclick="window.history.back()">取消搜尋</button>
-                </form>
+                <h4>
+                    <form method="GET" action="myDetail.php">
+                        <input name="keyword" placeholder="搜尋商品名稱"></input>
+                        <button type="submit" name="searchBtn">搜尋</button>
+                        <button onclick="window.history.back()">取消搜尋</button>
+                    </form>
+                </h4>
             </div>
             <div class="row">
                 <div class="col-md-6">
@@ -193,81 +188,78 @@
                         }
 
                         // 獲取當前頁碼
-                        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
-                            $current_page = (int) $_GET['page'];
-                        } else {
-                            $current_page = 1;
-                        }
+                        $current_page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int) $_GET['page'] : 1;
 
                         // 計算起始擷取的資料索引
                         $start_index = ($current_page - 1) * $records_per_page;
 
                         try {
                             // 準備 SQL 查詢，擷取指定範圍內的資料
-                            $sql = "SELECT * FROM products";
-                            $sellerID = $_SESSION['u_id'];
+                            $sql = "SELECT products.p_name,
+                        products.p_picture, 
+                        orders.date,
+                        orderDetail.amount,
+                        users.username
+                        FROM orderDetail 
+                        JOIN orders ON orderDetail.order_id = orders.order_id
+                        JOIN products ON orderDetail.p_id = products.p_id
+                        JOIN users ON products.sellerID = users.u_id";
                             // 添加搜尋條件
                             if (!empty($search_keyword)) {
-                                $sql .= " WHERE productName LIKE :keyword";
+                                $sql .= " AND products.p_name LIKE :keyword";
                             }
 
-                            if (!empty($sellerID)) {
-                                if (!empty($search_keyword)) {
-                                    $sql .= " AND sellerID = :sellerID";
-                                } else {
-                                    $sql .= " WHERE sellerID = :sellerID";
-                                }
-                            }
-
+                            $sql .= " WHERE orders.buyer_id=:u_id";
                             $sql .= " LIMIT :start_index, :records_per_page";
 
                             // 準備查詢
                             $stmt = $db->prepare($sql);
 
                             // 綁定參數
-                            $stmt->bindParam(':sellerID', $sellerID);
                             $stmt->bindParam(':start_index', $start_index, PDO::PARAM_INT);
                             $stmt->bindParam(':records_per_page', $records_per_page, PDO::PARAM_INT);
-
+                            $stmt->bindParam(':u_id', $_SESSION['u_id']);
                             // 添加搜尋參數
                             if (!empty($search_keyword)) {
                                 $keyword = '%' . $search_keyword . '%';
                                 $stmt->bindParam(':keyword', $keyword, PDO::PARAM_STR);
                             }
 
-                            // 執行查詢
                             $stmt->execute();
 
                             // 檢查是否有資料
                             if ($stmt->rowCount() > 0) {
-                                // 逐行讀取資料並輸出
-                                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                                    echo "<div style='background-color: #9D9D9D; padding: 10px; margin-bottom: 10px;'>";
-                                    echo "<form method='POST'>";
-                                    echo "<label class='text-color'>商品名稱:</label><input type='text' name='p_name' value='" . $row["p_name"] . "' class='text-color'><br>";
-                                    echo "<label class='text-color'>商品價格:</label><input type='text' name='p_price' value='" . $row["p_price"] . "' class='text-color'><br>";
-                                    echo "<label class='text-color'>商品數量:</label><input type='text' name='p_amount' value='" . $row["p_amount"] . "' class='text-color'><br>";
-                                    echo "<label class='text-color'>商品介紹:</label><input type='text' name='p_intro' value='" . $row["p_intro"] . "' class='text-color'><br>";
-                                    echo "<input type='hidden' name='p_id' value='" . $row["p_id"] . "'>";
-                                    echo "<button type='submit' name='editProduct'>編輯商品</button>";
-                                    echo "</form>";
-                                    echo "</div>";
+                                // 輸出資料表格
+                                echo "<table><tr><th>商品圖片</th><th>商品名稱</th><th>賣家名稱</th><th>購買日期</th><th>購買數量</th><th>總價格</th></tr>";
+                                while ($Detail = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                                    echo "<tr>";
+                                    echo '<img src="' . $Detail['p_picture'] . '" style="max-width: 400px; max-height: 500px;"><br>';
+                                    echo "<td>" . htmlspecialchars($Detail['p_name']) . "&nbsp&nbsp</td>"; // 修改此處以顯示商品名稱
+                                    echo "<td>" . htmlspecialchars($Detail['username']) . "&nbsp&nbsp</td>";
+                                    echo "<td>" . htmlspecialchars($Detail['date']) . "&nbsp&nbsp</td>";
+                                    // echo "<td>" . htmlspecialchars($Detail['amount']) . "&nbsp&nbsp</td>";
+                                    // echo "<td>" . htmlspecialchars($Detail['totalMoney']) . "&nbsp&nbsp</td>";
                                 }
+                                echo "</table>";
                             } else {
                                 echo "0 筆結果";
                             }
 
-                            // 獲取特定賣家的商品總數
+                            // 計算符合搜尋條件的總共的資料筆數
                             if (!empty($search_keyword)) {
-                                $total_records_stmt = $db->prepare("SELECT COUNT(*) FROM products WHERE sellerID = :u_id AND p_name LIKE :keyword");
-                                $total_records_stmt->bindParam(":u_id", $_SESSION['u_id']);
-                                $total_records_stmt->bindParam(":keyword", $keyword);
+                                $TotalSql = "SELECT COUNT(*) FROM orderDetail 
+                                        JOIN orders ON orderDetail.order_id = orders.order_id
+                                        JOIN products ON orderDetail.p_id = products.p_id 
+                                        WHERE orders.buyer_id=:u_id AND products.p_name LIKE :keyword";
+                                $total_records_stmt = $db->prepare($TotalSql);
+                                $total_records_stmt->bindParam(':u_id', $_SESSION['u_id']);
+                                $total_records_stmt->bindParam(':keyword', $keyword, PDO::PARAM_STR);
                             } else {
-                                $total_records_stmt = $db->prepare("SELECT COUNT(*) FROM products WHERE sellerID = :u_id");
-                                $total_records_stmt->bindParam(":u_id", $_SESSION['u_id']);
+                                $total_records_stmt = $db->prepare("SELECT COUNT(*) FROM orders WHERE buyer_id = :u_id");
+                                $total_records_stmt->bindParam(':u_id', $_SESSION['u_id']);
                             }
                             $total_records_stmt->execute();
-                            $total_records = $total_records_stmt->fetchColumn();
+                            $total_records = intval($total_records_stmt->fetchColumn());
 
                             // 計算總頁數
                             $total_pages = ceil($total_records / $records_per_page);
@@ -286,35 +278,8 @@
                                 }
                             }
                         } catch (PDOException $e) {
-                            // Handle any errors
+                            // 處理錯誤
                             echo "Error: " . $e->getMessage();
-                        }
-
-                        // Handle edit product form submission
-                        if (isset($_POST['editProduct'])) {
-                            $productId = $_POST['p_id'];
-                            $productName = !empty($_POST['p_name']) ? $_POST['p_name'] : null;
-                            $productPrice = !empty($_POST['p_price']) ? $_POST['p_price'] : null;
-                            $productAmount = !empty($_POST['p_amount']) ? $_POST['p_amount'] : null;
-                            $productIntro = !empty($_POST['p_intro']) ? $_POST['p_intro'] : null;
-
-                            // Update the product with new values
-                            try {
-                                $sql = "UPDATE products SET p_name = :p_name, p_price = :p_price, p_amount = :p_amount, p_intro = :p_intro WHERE p_id = :p_id";
-                                $stmt = $db->prepare($sql);
-                                $stmt->bindParam(':p_name', $productName);
-                                $stmt->bindParam(':p_price', $productPrice);
-                                $stmt->bindParam(':p_amount', $productAmount);
-                                $stmt->bindParam(':p_intro', $productIntro);
-                                $stmt->bindParam(':p_id', $productId);
-                                $stmt->execute();
-                                // Redirect to the same page to update the product list
-                                echo "<script>alert('編輯商品成功'); window.location.href='editMyProducts.php'; </script>";
-                                exit();
-                            } catch (PDOException $e) {
-                                // Handle any errors
-                                echo "Error: " . $e->getMessage();
-                            }
                         }
                         ?>
                     </div>
@@ -324,7 +289,6 @@
     </section>
 
     <!-- end about section -->
-
 
     <!-- jQery -->
     <script type="text/javascript" src="js/jquery-3.4.1.min.js"></script>
