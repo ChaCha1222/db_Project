@@ -223,7 +223,7 @@
                                     INNER JOIN products 
                                     ON carts.p_id = products.p_id 
                                     WHERE carts.buyer_id = :u_id 
-                                    AND products.productName LIKE :keyword");
+                                    AND products.p_name LIKE :keyword");
                                 $total_records_stmt->bindParam(':u_id', $_SESSION['u_id']);
                                 $total_records_stmt->bindParam(':keyword', $keyword, PDO::PARAM_STR);
                             }

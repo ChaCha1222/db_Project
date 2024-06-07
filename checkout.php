@@ -3,7 +3,7 @@
 session_start();
 include "database_connection.php";
 
-if (isset($_SESSION['u_id']) && isset($_POST['checkout'])) {
+if (isset($_SESSION['u_id']) && isset($_POST['checkout']) && ($_SERVER["REQUEST_METHOD"] == "POST")) {
     $buyer_ID = $_SESSION['u_id'];
 
     try {
@@ -40,7 +40,6 @@ if (isset($_SESSION['u_id']) && isset($_POST['checkout'])) {
         // 獲取新生成的 orderID
         $orderID = $db->lastInsertId();
 
-
         // 將商品詳細資訊插入到 orderDetail 資料表
         $insert_order_detail_stmt = $db->prepare("INSERT INTO orderDetail (p_id, amount, order_id) VALUES (:product_ID, :productAmount, :orderID)");
         $insert_order_detail_stmt->bindParam(':product_ID', $product_ID);
@@ -49,6 +48,9 @@ if (isset($_SESSION['u_id']) && isset($_POST['checkout'])) {
         $insert_order_detail_stmt->execute();
 
         echo "<script>alert('結帳成功!'); window.location.href='check.php';</script>";
+
+        exit();
+
 
     } catch (PDOException $e) {
         // 處理錯誤

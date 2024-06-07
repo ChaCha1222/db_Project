@@ -189,9 +189,15 @@
                             $stmt->execute();
 
                             // 輸出表格標題
-                            echo "<table><tr><th>產品名稱</th><th>數量</th><th>單價</th><th>總價</th><th>圖片</th><th>操作</th></tr>";
+                            echo "<table><tr><th>產品名稱</th><th>數量</th><th>單價</th><th>總價</th><th>圖片</th></tr>";
 
                             // 處理每一行資料
+                            echo "<form action=\"checkout.php\" method=\"post\">";
+                            $bProductListArray  = [];
+                            $bQuantityListArray = [];
+                            $bProductList       = "";
+                            $bQuantityList      = "";
+                            
                             while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                                 $productName = htmlspecialchars($row['p_name']);
                                 $productAmount = htmlspecialchars($row['amount']);
@@ -206,11 +212,9 @@
                                 echo "<td>&nbsp;&nbsp;$productPrice&nbsp;&nbsp;</td>";
                                 echo "<td>&nbsp;&nbsp;$productTotalPrice&nbsp;&nbsp;</td>";
                                 echo '<td><img src="' . $row["p_picture"] . '" style="max-width: 300px; max-height: 300px;"><br></td>';
-                                echo "<td><form action='checkout.php' method='post'>";
                                 echo "<input type='hidden' name='productAmount' value='$productAmount'>";
                                 echo "<input type='hidden' name='productID' value='$productID'>";
                                 echo "<input type='hidden' name='productTotalPrice' value='$productTotalPrice'>";
-                                echo "</form></td>";
                                 echo "</tr>";
 
                                 // 加總價格
@@ -223,7 +227,7 @@
                             // 輸出總價格
                             echo "</table>";
                             echo "<br>商品總價格: $" . $totalPrice;
-                            echo "<form action=\"checkout.php\" method=\"post\">";
+                            // echo "<form action=\"checkout.php\" method=\"post\">";
                             echo "<br>";
                             echo "<button type=\"submit\" name=\"checkout\" class=\"btn btn-primary\" style=\"background-color: #7D7DFF; color: #ffffff;\">結帳</button>";
                             echo "</form>";
