@@ -127,7 +127,7 @@
             <div class="heading_container heading_center">
                 <h2>
                     管理我的購物車
-                    <a href='check.php'><button>全部商品結帳</button></a>
+                    <a href='checkout.php'><button>全部商品結帳</button></a>
                 </h2>
                 <h4>
                     <form method="GET" action="myCart.php">
