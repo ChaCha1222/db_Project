@@ -267,13 +267,7 @@
                             //上面的資料庫訪問以及 insert 對於一個訂單來講這樣的資料欄位是不夠的
                             //換句話說 上面的程式碼未完成
 
-                            // Clear Cart
-                            $sql = "DELETE FROM `carts` WHERE `buyer_id` = :buyer_id";
-                            $deleteFromCartStmt = $db->prepare($sql);
-                            $deleteFromCartStmt->bindParam(':buyer_id', $buyerID);
-                            $deleteFromCartStmt->execute();
-
-                             // 減少商品庫存
+                            // 減少商品庫存
                             $update_product_amount = "
                                 UPDATE 
                                     products
@@ -288,6 +282,12 @@
                             $update_product_amount_stmt->bindParam(':buyer_id', $buyerID,   PDO::PARAM_INT);
                             $update_product_amount_stmt->bindParam(':p_id',     $productID, PDO::PARAM_INT);
                             $update_product_amount_stmt->execute();
+
+                            // Clear Cart
+                            $sql = "DELETE FROM `carts` WHERE `buyer_id` = :buyer_id";
+                            $deleteFromCartStmt = $db->prepare($sql);
+                            $deleteFromCartStmt->bindParam(':buyer_id', $buyerID);
+                            $deleteFromCartStmt->execute();
                         }
 
 
