@@ -192,11 +192,11 @@
 
                             // 處理每一行資料
                             echo "<form action=\"checkout.php\" method=\"post\">";
-                            $pidArray      = [];
+                            $pidArray = [];
                             $quantityArray = []; //產品數量待處理
-                            $pidStr        = "";
-                            $quantityStr   = "";
-                            
+                            $pidStr = "";
+                            $quantityStr = "";
+
                             while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                                 $productName = htmlspecialchars($row['p_name']);
                                 $productAmount = htmlspecialchars($row['amount']);
@@ -232,7 +232,7 @@
                             // echo "<form action=\"checkout.php\" method=\"post\">";
                             echo "<br>";
                             echo "<button type=\"submit\" name=\"checkout\" class=\"btn btn-primary\" style=\"background-color: #7D7DFF; color: #ffffff;\">結帳</button>";
-                            echo "</form>";
+                            // echo "</form>";
 
 
                         } catch (PDOException $e) {
@@ -242,24 +242,47 @@
                         ?>
 
                         <?php
-                            if($_SERVER['REQUEST_METHOD'] == "POST"){ //處理按下“結帳”按鈕的功能
-                                //資料庫欄位 order_id	sellerID	buyer_id	date	p_id
-                                $pidStr = implode(',', $pidArray);
-                                $quantityStr = implode(',', $quantityArray);
-                                $date = date("Y-m-d H:i:s");
-                                $sql = "INSERT INTO `orders`(`sellerID`, `buyer_id`, `date`, `p_id`) VALUES (:sellerID, :buyer_id, :date, :p_id)";
-                                $insertIntoOrderTable_stmt = $db -> prepare($sql);
-                                $insertIntoOrderTable_stmt -> bindParam(':buyerID', $_SESSION['u_id']);
-                                $insertIntoOrderTable_stmt -> bindParam(':date', $date);
-                                $insertIntoOrderTable_stmt -> bindParam(':p_id', $pidStr); //待處理PID整列
-                                //你需要處理的是資料庫上面關於 數量的 欄位以及訂單其他欄位合併到 order 資料表上
-                                //上面的資料庫訪問以及 insert 對於一個訂單來講這樣的資料欄位是不夠的
-                                //換句話說 上面的程式碼未完成
+                        if ($_SERVER['REQUEST_METHOD'] == "POST") { //處理按下“結帳”按鈕的功能
+                            //資料庫欄位 order_id	sellerID	buyer_id	date	p_id
+                            $pidStr = implode(',', $pidArray);
+                            $quantityStr = implode(',', $quantityArray);
+                            $date = date("Y-m-d H:i:s");
+                            $sql = "INSERT INTO `orders`(`buyer_id`, `date`, `p_id`, `amount`) VALUES (:buyer_id, :date, :p_id, :amount)";
+                            $insertIntoOrderTable_stmt = $db->prepare($sql);
+                            $insertIntoOrderTable_stmt->bindParam(':buyer_id', $_SESSION['u_id']);
+                            $insertIntoOrderTable_stmt->bindParam(':date', $date);
+                            $insertIntoOrderTable_stmt->bindParam(':p_id', $pidStr); //待處理PID整列
+                            $insertIntoOrderTable_stmt->bindParam(':amount', $quantityStr);
+                            //你需要處理的是資料庫上面關於 數量的 欄位以及訂單其他欄位合併到 order 資料表上
+                            //上面的資料庫訪問以及 insert 對於一個訂單來講這樣的資料欄位是不夠的
+                            //換句話說 上面的程式碼未完成
+                            $sql = "DELETE FROM `carts` WHERE `buyer_id` = :buyer_id";
+                            $deleteFromCartStmt = $db->prepare($sql);
+                            $deleteFromCartStmt->bindParam(':buyer_id', $_SESSION['u_id']);
+                            $deleteFromCartStmt->execute();
 
-                            }
-                        
-                        
-                        
+                            $pidsArray = explode(',', $pidStr);
+                            $placeholders = implode(', ', array_fill(0, count($pidArray), '?'));
+                            $sql = "UPDATE `products` SET `p_picture`  WHERE `p_id` IN ($placeholders)";
+                            $noDisplayStmt = $db->prepare($sql);
+                            $noDisplayStmt->execute($pidArray);
+
+                            $sql = "DELETE FROM `carts` WHERE `p_id` IN ($placeholders)";
+                            $deleteFromOtherUserCartStmt = $db->prepare($sql);
+                            $deleteFromOtherUserCartStmt->execute($pidsArray);
+
+                             // 減少商品庫存
+                            $update_product_amount_stmt = $db->prepare("UPDATE products 
+                            INNER JOIN carts ON carts.p_id = products.p_id 
+                            SET products.p_amount = products.p_amount - carts.amount 
+                            WHERE carts.p_id = :p_id AND carts.buyer_id = :buyer_id");
+                            $update_product_amount_stmt->bindParam(':buyer_id', $_SESSION['u_id']);
+                            $update_product_amount_stmt->bindParam(':p_id',  $productID);
+                            $update_product_amount_stmt->execute();
+                        }
+
+
+
                         ?>
                     </div>
                 </div>
