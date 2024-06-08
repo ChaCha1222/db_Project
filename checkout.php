@@ -256,7 +256,7 @@
                             $quantityStr = implode(',', $quantityArray);
                             $date = date("Y-m-d H:i:s");
                             
-                            $sql = "INSERT INTO `orders`(`buyer_id`, `date`, `p_id`, `amount`) VALUES (:buyer_id, :date, :p_id, :amount)";
+                            $sql = "INSERT INTO orders (buyer_id, `date`, p_id, amount) VALUES (:buyer_id, :date, :p_id, :amount)";
                             $insertIntoOrderTable_stmt = $db->prepare($sql);
                             $insertIntoOrderTable_stmt->bindParam(':buyer_id',  $buyerID,       PDO::PARAM_INT);
                             $insertIntoOrderTable_stmt->bindParam(':date',      $date,          PDO::PARAM_STR);
@@ -285,13 +285,13 @@
                              // 減少商品庫存
                             $update_product_amount = "
                                 UPDATE 
-                                    `products` 
+                                    products
                                 JOIN 
-                                    `carts` ON `carts.p_id` = `products.p_id` 
+                                    carts ON carts.p_id = products.p_id 
                                 SET 
-                                    `products.p_amount` = `products.p_amount` - `carts.amount` 
+                                    products.p_amount = (products.p_amount - carts.amount) 
                                 WHERE 
-                                    `carts.p_id` = :p_id AND `carts.buyer_id` = :buyer_id
+                                    carts.p_id = :p_id AND carts.buyer_id = :buyer_id
                             ";
                             $update_product_amount_stmt = $db->prepare($update_product_amount);
                             $update_product_amount_stmt->bindParam(':buyer_id', $buyerID,   PDO::PARAM_INT);
