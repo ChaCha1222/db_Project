@@ -262,7 +262,6 @@
                             $insertIntoOrderTable_stmt -> bindParam(':date',      $date,          PDO::PARAM_STR);
                             $insertIntoOrderTable_stmt -> bindParam(':p_id',      $pidStr,        PDO::PARAM_INT); //待處理PID整列
                             $insertIntoOrderTable_stmt -> bindParam(':amount',    $quantityStr,   PDO::PARAM_INT);
-                            $insertIntoOrderTable_stmt -> execute();
                             //你需要處理的是資料庫上面關於 數量的 欄位以及訂單其他欄位合併到 order 資料表上
                             //上面的資料庫訪問以及 insert 對於一個訂單來講這樣的資料欄位是不夠的
                             //換句話說 上面的程式碼未完成
@@ -281,13 +280,11 @@
                             $update_product_amount_stmt = $db->prepare($update_product_amount);
                             $update_product_amount_stmt->bindParam(':buyer_id', $buyerID,   PDO::PARAM_INT);
                             $update_product_amount_stmt->bindParam(':p_id',     $productID, PDO::PARAM_INT);
-                            $update_product_amount_stmt->execute();
 
                             // Clear Cart
                             $sql = "DELETE FROM `carts` WHERE `buyer_id` = :buyer_id";
                             $deleteFromCartStmt = $db->prepare($sql);
                             $deleteFromCartStmt->bindParam(':buyer_id', $buyerID);
-                            $deleteFromCartStmt->execute();
 
                             if($insertIntoOrderTable_stmt -> execute() && $update_product_amount_stmt->execute() && $deleteFromCartStmt->execute()){
 
