@@ -213,9 +213,6 @@
                                 echo "<td>&nbsp;&nbsp;$productPrice&nbsp;&nbsp;</td>";
                                 echo "<td>&nbsp;&nbsp;$productTotalPrice&nbsp;&nbsp;</td>";
                                 echo '<td><img src="' . $row["p_picture"] . '" style="max-width: 300px; max-height: 300px;"><br></td>';
-                                echo "<input type='hidden' name='productAmount' value='$productAmount'>";
-                                echo "<input type='hidden' name='productID' value='$productID'>";
-                                echo "<input type='hidden' name='productTotalPrice' value='$productTotalPrice'>";
                                 echo "</tr>";
 
                                 // 加總價格
@@ -229,7 +226,6 @@
                             // 輸出總價格
                             echo "</table>";
                             echo "<br>商品總價格: $" . $totalPrice;
-                            // echo "<form action=\"checkout.php\" method=\"post\">";
                             echo "<br>";
                             echo "<button type=\"submit\" name=\"checkout\" class=\"btn btn-primary\" style=\"background-color: #7D7DFF; color: #ffffff;\">結帳</button>";
                             echo "</form>";
@@ -242,25 +238,45 @@
                         ?>
 
                         <?php
-                            if($_SERVER['REQUEST_METHOD'] == "POST"){ //處理按下“結帳”按鈕的功能
-                                //資料庫欄位 order_id	sellerID	buyer_id	date	p_id
-                                $pidStr = implode(',', $pidArray);
-                                $quantityStr = implode(',', $quantityArray);
-                                $date = date("Y-m-d H:i:s");
-                                $sql = "INSERT INTO `orders`(`sellerID`, `buyer_id`, `date`, `p_id`) VALUES (:sellerID, :buyer_id, :date, :p_id)";
-                                $insertIntoOrderTable_stmt = $db -> prepare($sql);
-                                $insertIntoOrderTable_stmt -> bindParam(':buyerID', $_SESSION['u_id']);
-                                $insertIntoOrderTable_stmt -> bindParam(':date', $date);
-                                $insertIntoOrderTable_stmt -> bindParam(':p_id', $pidStr); //待處理PID整列
-                                //你需要處理的是資料庫上面關於 數量的 欄位以及訂單其他欄位合併到 order 資料表上
-                                //上面的資料庫訪問以及 insert 對於一個訂單來講這樣的資料欄位是不夠的
-                                //換句話說 上面的程式碼未完成
+                            if(($_SERVER['REQUEST_METHOD'] == "POST") && isset($_POST["checkout"])){ //處理按下“結帳”按鈕的功能
+                                //資料庫欄位 order_id	buyer_id	date	p_id    amount
 
+                                $pidStr      = implode(',', $pidArray);
+                                $quantityStr = implode(',', $quantityArray);
+                                $date        = date("Y-m-d H:i:s");
+
+
+                                $sql = "
+                                    INSERT INTO `orders`
+                                        (`buyer_id`, `date`, `p_id`, `amount`)
+                                        VALUES 
+                                        (:buyer_id,  :date,  :p_id,  :amount)";
+                                $insertIntoOrderTable_stmt = $db -> prepare($sql);
+                                $insertIntoOrderTable_stmt -> bindParam(':buyer_id', $_SESSION['u_id'], PDO::PARAM_INT);
+                                $insertIntoOrderTable_stmt -> bindParam(':date',     $date,             PDO::PARAM_STR);
+                                $insertIntoOrderTable_stmt -> bindParam(':p_id',     $pidStr,           PDO::PARAM_STR);
+                                $insertIntoOrderTable_stmt -> bindParam(':amount',   $quantityStr,      PDO::PARAM_STR);
+
+                                if($insertIntoOrderTable_stmt -> execute()){
+
+                                    echo "
+                                        <script>
+                                            alert('注意：訂購完成');
+                                            window.href.location = 'myCart.php';
+                                        </script>
+                                    ";
+                                }else{
+
+                                    echo "
+                                        <script>
+                                            alert('注意：訂購失敗');
+                                            window.href.location = 'myCart.php';
+                                        </script>
+                                    ";
+                                }
                             }
-                        
-                        
-                        
                         ?>
+
                     </div>
                 </div>
             </div>
@@ -270,7 +286,7 @@
     <!-- end about section -->
 
     <!-- jQery -->
-    <script type="text/javascript" src="js/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" src="js/jquery-3.4.1.min.js"></>
     <!-- popper js -->
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
         integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous">
