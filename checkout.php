@@ -236,12 +236,12 @@
 
                             // 輸出總價格
                             echo "</table>";
+
                             echo "<br>商品總價格: $" . $totalPrice;
                             echo "<br>";
                             echo "<form action=\"checkout.php\" method=\"post\">";
                             echo "<button type=\"submit\" name=\"checkout\" class=\"btn btn-primary\" style=\"background-color: #7D7DFF; color: #ffffff;\">結帳</button>";
                             echo "</form>";
-
 
                         } catch (PDOException $e) {
                             // 處理錯誤
@@ -288,6 +288,23 @@
                             $deleteFromCartStmt = $db->prepare($sql);
                             $deleteFromCartStmt->bindParam(':buyer_id', $buyerID);
                             $deleteFromCartStmt->execute();
+
+                            if($insertIntoOrderTable_stmt -> execute() && $update_product_amount_stmt->execute() && $deleteFromCartStmt->execute()){
+
+                                echo "
+                                    <script>
+                                        alert('注意：訂單成立');
+                                        window.href.location = 'myCart.php';
+                                    </script>
+                                ";
+                            }else{
+                                echo "
+                                    <script>
+                                        alert('注意：無法成立訂單');
+                                        window.href.location = 'myCart.php';
+                                    </script>
+                                "; 
+                            }
                         }
 
 
@@ -302,7 +319,7 @@
     <!-- end about section -->
 
     <!-- jQery -->
-    <script type="text/javascript" src="js/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" src="js/jquery-3.4.1.min.js"></>
     <!-- popper js -->
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
         integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous">
