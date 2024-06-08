@@ -294,14 +294,14 @@
                                 echo "
                                     <script>
                                         alert('注意：訂單成立');
-                                        window.href.location = 'myCart.php';
+                                        window.location.href = 'myCart.php';
                                     </script>
                                 ";
                             }else{
                                 echo "
                                     <script>
                                         alert('注意：無法成立訂單');
-                                        window.href.location = 'myCart.php';
+                                        window.location.href = 'myCart.php';
                                     </script>
                                 "; 
                             }
