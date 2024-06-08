@@ -181,13 +181,13 @@
                             // 準備 SQL 查詢，查詢使用者加入購物車的資料
                             $fetch_cart_info = "
                                 SELECT 
-                                    `c.*`, `p.p_name`, `p.p_picture`, `p.p_price`
+                                    c.*, p.p_name, p.p_picture, p.p_price
                                 FROM 
-                                    `carts` c
+                                    carts c
                                 INNER JOIN 
-                                    `products` p ON `c.p_id` = `p.p_id` 
+                                    products p ON c.p_id = p.p_id 
                                 WHERE 
-                                    `c.buyer_id` = :u_id
+                                    c.buyer_id = :u_id
                             ";
 
                             $fetch_cart_stmt = $db -> prepare($fetch_cart_info);
