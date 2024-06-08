@@ -198,12 +198,12 @@
                             echo "<table><tr><th>產品名稱</th><th>數量</th><th>單價</th><th>總價</th><th>圖片</th></tr>";
 
                             // 處理每一行資料
-                            echo "<form action=\"checkout.php\" method=\"post\">";
-                            $totalPrice = 0;
-                            $pidArray = [];
-                            $quantityArray = []; //產品數量待處理
-                            $pidStr = "";
-                            $quantityStr = "";
+                            
+                            $totalPrice     = 0;
+                            $pidArray       = [];
+                            $quantityArray  = []; //產品數量待處理
+                            $pidStr         = "";
+                            $quantityStr    = "";
 
                             while ($row = $fetch_cart_stmt -> fetch(PDO::FETCH_ASSOC)) {
                                 // 將資訊擷取到變數
@@ -215,8 +215,8 @@
                                 $productTotalPrice = $row['amount'] * $row['p_price'];
                                 
                                 // 塞入陣列
-                                $pidArray[]        = $productID;
-                                $quantityArray[]   = $productAmount;
+                                array_push($pidArray,       $productID);
+                                array_push($quantityArray,  $productAmount);
 
                                 // 總價格
                                 $totalPrice += $productTotalPrice;
@@ -234,13 +234,13 @@
                                 echo "<tr><td colspan='4'></td></tr>";                                
                             }
 
-
                             // 輸出總價格
                             echo "</table>";
                             echo "<br>商品總價格: $" . $totalPrice;
                             echo "<br>";
+                            echo "<form action=\"checkout.php\" method=\"post\">";
                             echo "<button type=\"submit\" name=\"checkout\" class=\"btn btn-primary\" style=\"background-color: #7D7DFF; color: #ffffff;\">結帳</button>";
-                            // echo "</form>";
+                            echo "</form>";
 
 
                         } catch (PDOException $e) {
@@ -267,21 +267,11 @@
                             //上面的資料庫訪問以及 insert 對於一個訂單來講這樣的資料欄位是不夠的
                             //換句話說 上面的程式碼未完成
 
+                            // Clear Cart
                             $sql = "DELETE FROM `carts` WHERE `buyer_id` = :buyer_id";
                             $deleteFromCartStmt = $db->prepare($sql);
                             $deleteFromCartStmt->bindParam(':buyer_id', $buyerID);
                             $deleteFromCartStmt->execute();
-                            
-                            // UNUSED
-                            // $pidsArray = explode(',', $pidStr);
-                            // $placeholders = implode(', ', array_fill(0, count($pidArray), '?'));
-                            // $sql = "UPDATE `products` SET `p_picture`  WHERE `p_id` IN ($placeholders)";
-                            // $noDisplayStmt = $db->prepare($sql);
-                            // $noDisplayStmt->execute($pidArray);
-
-                            // $sql = "DELETE FROM `carts` WHERE `p_id` IN ($placeholders)";
-                            // $deleteFromOtherUserCartStmt = $db->prepare($sql);
-                            // $deleteFromOtherUserCartStmt->execute($pidsArray);
 
                              // 減少商品庫存
                             $update_product_amount = "
