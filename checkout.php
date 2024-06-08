@@ -175,61 +175,69 @@
                     <div class="detail-box">
                         <?php
                         try {
+
+                            $buyerID = $_SESSION['u_id'];
+
                             // 準備 SQL 查詢，查詢使用者加入購物車的資料
-                            $sql = "SELECT carts.*, products.p_name, products.p_picture, products.p_price
-                                        FROM carts 
-                                        INNER JOIN products ON carts.p_id = products.p_id WHERE carts.buyer_id = :u_id";
+                            $fetch_cart_info = "
+                                SELECT 
+                                    `carts.*`, `products.p_name`, `products.p_picture`, `products.p_price`
+                                FROM 
+                                    `carts` 
+                                INNER JOIN 
+                                    `products` ON `carts.p_id` = `products.p_id` 
+                                WHERE 
+                                    `carts.buyer_id` = :u_id
+                            ";
 
-                            $stmt = $db->prepare($sql);
-                            $stmt->bindParam(":u_id", $_SESSION['u_id']);
-                            // 初始化總價格
-                            $totalPrice = 0;
-
-                            $stmt->execute();
+                            $fetch_cart_stmt = $db -> prepare($fetch_cart_info);
+                            $fetch_cart_stmt -> bindParam(":u_id", $buyerID, PDO::PARAM_INT);
+                            $fetch_cart_stmt -> execute();
 
                             // 輸出表格標題
                             echo "<table><tr><th>產品名稱</th><th>數量</th><th>單價</th><th>總價</th><th>圖片</th></tr>";
 
                             // 處理每一行資料
                             echo "<form action=\"checkout.php\" method=\"post\">";
+                            $totalPrice = 0;
                             $pidArray = [];
                             $quantityArray = []; //產品數量待處理
                             $pidStr = "";
                             $quantityStr = "";
 
-                            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                                $productName = htmlspecialchars($row['p_name']);
-                                $productAmount = htmlspecialchars($row['amount']);
-                                $productPrice = htmlspecialchars($row['p_price']);
+                            while ($row = $fetch_cart_stmt -> fetch(PDO::FETCH_ASSOC)) {
+                                // 將資訊擷取到變數
+                                $productID         = $row['p_id'];
+                                $productName       = $row['p_name'];
+                                $productPicture    = $row["p_picture"];
+                                $productAmount     = $row['amount'];
+                                $productPrice      = $row['p_price'];
                                 $productTotalPrice = $row['amount'] * $row['p_price'];
-                                $productID = $row['p_id'];
-                                $pidArray[] = $row['p_id'];
-                                $quantityArray[] = $row['amount'];
+                                
+                                // 塞入陣列
+                                $pidArray[]        = $productID;
+                                $quantityArray[]   = $productAmount;
+
+                                // 總價格
+                                $totalPrice += $productTotalPrice;
 
                                 // 輸出該產品的資料
                                 echo "<tr>";
-                                echo "<td>$productName</td>";
-                                echo "<td>&nbsp;&nbsp;$productAmount&nbsp;&nbsp;</td>";
-                                echo "<td>&nbsp;&nbsp;$productPrice&nbsp;&nbsp;</td>";
-                                echo "<td>&nbsp;&nbsp;$productTotalPrice&nbsp;&nbsp;</td>";
-                                echo '<td><img src="' . $row["p_picture"] . '" style="max-width: 300px; max-height: 300px;"><br></td>';
-                                echo "<input type='hidden' name='productAmount' value='$productAmount'>";
-                                echo "<input type='hidden' name='productID' value='$productID'>";
-                                echo "<input type='hidden' name='productTotalPrice' value='$productTotalPrice'>";
+                                echo "<td>              $productName        </td>";
+                                echo "<td>&nbsp;&nbsp;  $productAmount      &nbsp;&nbsp;</td>";
+                                echo "<td>&nbsp;&nbsp;  $productPrice       &nbsp;&nbsp;</td>";
+                                echo "<td>&nbsp;&nbsp;  $productTotalPrice  &nbsp;&nbsp;</td>";
+                                echo '<td><img src="' . $productPicture . '" style="max-width: 300px; max-height: 300px;"><br></td>';
                                 echo "</tr>";
 
-                                // 加總價格
-                                $totalPrice += $productTotalPrice;
-
                                 // 添加分隔行
-                                echo "<tr><td colspan='4'></td></tr>";
+                                echo "<tr><td colspan='4'></td></tr>";                                
                             }
 
 
                             // 輸出總價格
                             echo "</table>";
                             echo "<br>商品總價格: $" . $totalPrice;
-                            // echo "<form action=\"checkout.php\" method=\"post\">";
                             echo "<br>";
                             echo "<button type=\"submit\" name=\"checkout\" class=\"btn btn-primary\" style=\"background-color: #7D7DFF; color: #ffffff;\">結帳</button>";
                             // echo "</form>";
@@ -242,42 +250,52 @@
                         ?>
 
                         <?php
-                        if ($_SERVER['REQUEST_METHOD'] == "POST") { //處理按下“結帳”按鈕的功能
+                        if (($_SERVER['REQUEST_METHOD'] === "POST") && isset($_POST['checkout'])) { //處理按下“結帳”按鈕的功能
                             //資料庫欄位 order_id	sellerID	buyer_id	date	p_id
                             $pidStr = implode(',', $pidArray);
                             $quantityStr = implode(',', $quantityArray);
                             $date = date("Y-m-d H:i:s");
+                            
                             $sql = "INSERT INTO `orders`(`buyer_id`, `date`, `p_id`, `amount`) VALUES (:buyer_id, :date, :p_id, :amount)";
                             $insertIntoOrderTable_stmt = $db->prepare($sql);
-                            $insertIntoOrderTable_stmt->bindParam(':buyer_id', $_SESSION['u_id']);
-                            $insertIntoOrderTable_stmt->bindParam(':date', $date);
-                            $insertIntoOrderTable_stmt->bindParam(':p_id', $pidStr); //待處理PID整列
-                            $insertIntoOrderTable_stmt->bindParam(':amount', $quantityStr);
+                            $insertIntoOrderTable_stmt->bindParam(':buyer_id',  $buyerID,       PDO::PARAM_INT);
+                            $insertIntoOrderTable_stmt->bindParam(':date',      $date,          PDO::PARAM_STR);
+                            $insertIntoOrderTable_stmt->bindParam(':p_id',      $pidStr,        PDO::PARAM_INT); //待處理PID整列
+                            $insertIntoOrderTable_stmt->bindParam(':amount',    $quantityStr,   PDO::PARAM_INT);
                             //你需要處理的是資料庫上面關於 數量的 欄位以及訂單其他欄位合併到 order 資料表上
                             //上面的資料庫訪問以及 insert 對於一個訂單來講這樣的資料欄位是不夠的
                             //換句話說 上面的程式碼未完成
+
                             $sql = "DELETE FROM `carts` WHERE `buyer_id` = :buyer_id";
                             $deleteFromCartStmt = $db->prepare($sql);
-                            $deleteFromCartStmt->bindParam(':buyer_id', $_SESSION['u_id']);
+                            $deleteFromCartStmt->bindParam(':buyer_id', $buyerID);
                             $deleteFromCartStmt->execute();
+                            
+                            // UNUSED
+                            // $pidsArray = explode(',', $pidStr);
+                            // $placeholders = implode(', ', array_fill(0, count($pidArray), '?'));
+                            // $sql = "UPDATE `products` SET `p_picture`  WHERE `p_id` IN ($placeholders)";
+                            // $noDisplayStmt = $db->prepare($sql);
+                            // $noDisplayStmt->execute($pidArray);
 
-                            $pidsArray = explode(',', $pidStr);
-                            $placeholders = implode(', ', array_fill(0, count($pidArray), '?'));
-                            $sql = "UPDATE `products` SET `p_picture`  WHERE `p_id` IN ($placeholders)";
-                            $noDisplayStmt = $db->prepare($sql);
-                            $noDisplayStmt->execute($pidArray);
-
-                            $sql = "DELETE FROM `carts` WHERE `p_id` IN ($placeholders)";
-                            $deleteFromOtherUserCartStmt = $db->prepare($sql);
-                            $deleteFromOtherUserCartStmt->execute($pidsArray);
+                            // $sql = "DELETE FROM `carts` WHERE `p_id` IN ($placeholders)";
+                            // $deleteFromOtherUserCartStmt = $db->prepare($sql);
+                            // $deleteFromOtherUserCartStmt->execute($pidsArray);
 
                              // 減少商品庫存
-                            $update_product_amount_stmt = $db->prepare("UPDATE products 
-                            INNER JOIN carts ON carts.p_id = products.p_id 
-                            SET products.p_amount = products.p_amount - carts.amount 
-                            WHERE carts.p_id = :p_id AND carts.buyer_id = :buyer_id");
-                            $update_product_amount_stmt->bindParam(':buyer_id', $_SESSION['u_id']);
-                            $update_product_amount_stmt->bindParam(':p_id',  $productID);
+                            $update_product_amount = "
+                                UPDATE 
+                                    `products` 
+                                JOIN 
+                                    `carts` ON `carts.p_id` = `products.p_id` 
+                                SET 
+                                    `products.p_amount` = `products.p_amount` - `carts.amount` 
+                                WHERE 
+                                    `carts.p_id` = :p_id AND `carts.buyer_id` = :buyer_id
+                            ";
+                            $update_product_amount_stmt = $db->prepare($update_product_amount);
+                            $update_product_amount_stmt->bindParam(':buyer_id', $buyerID,   PDO::PARAM_INT);
+                            $update_product_amount_stmt->bindParam(':p_id',     $productID, PDO::PARAM_INT);
                             $update_product_amount_stmt->execute();
                         }
 
