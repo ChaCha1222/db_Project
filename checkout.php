@@ -258,10 +258,11 @@
                             
                             $sql = "INSERT INTO orders (buyer_id, `date`, p_id, amount) VALUES (:buyer_id, :date, :p_id, :amount)";
                             $insertIntoOrderTable_stmt = $db->prepare($sql);
-                            $insertIntoOrderTable_stmt->bindParam(':buyer_id',  $buyerID,       PDO::PARAM_INT);
-                            $insertIntoOrderTable_stmt->bindParam(':date',      $date,          PDO::PARAM_STR);
-                            $insertIntoOrderTable_stmt->bindParam(':p_id',      $pidStr,        PDO::PARAM_INT); //待處理PID整列
-                            $insertIntoOrderTable_stmt->bindParam(':amount',    $quantityStr,   PDO::PARAM_INT);
+                            $insertIntoOrderTable_stmt -> bindParam(':buyer_id',  $buyerID,       PDO::PARAM_INT);
+                            $insertIntoOrderTable_stmt -> bindParam(':date',      $date,          PDO::PARAM_STR);
+                            $insertIntoOrderTable_stmt -> bindParam(':p_id',      $pidStr,        PDO::PARAM_INT); //待處理PID整列
+                            $insertIntoOrderTable_stmt -> bindParam(':amount',    $quantityStr,   PDO::PARAM_INT);
+                            $insertIntoOrderTable_stmt -> execute();
                             //你需要處理的是資料庫上面關於 數量的 欄位以及訂單其他欄位合併到 order 資料表上
                             //上面的資料庫訪問以及 insert 對於一個訂單來講這樣的資料欄位是不夠的
                             //換句話說 上面的程式碼未完成
