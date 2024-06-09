@@ -92,35 +92,24 @@
     </style>
 
     <?php
-    include "database_connection.php";
-    session_start();
+        include "database_connection.php";
+        session_start();
     ?>
 
     <?php
-    if (($_SERVER["REQUEST_METHOD"] === "GET") && !(empty($_GET["fFetchTargetOrder"])) && ($_GET["fFetchTargetOrder"]) && !(empty($_GET["fRequestViewOrder"])) && ($_GET["fRequestViewOrder"])) {
+        
+        $records_per_page = 5;
 
-        $LISTING_ORDER_PRODUCTS = "
-
-				SELECT 
-					* 
-				FROM 
-					`orders` 
-				WHERE 
-					WHERE (`buyer_id` = :buyer_id AND `order_id` = :order_id)
-			";
-
-        $LISTING_PRODUCTS_STMT = $db->prepare($LISTING_ORDER_PRODUCTS);
-        $LISTING_PRODUCTS_STMT->bindParam(":buyer_id", $_SESSION["u_id"], PDO::PARAM_STR);
-        $LISTING_PRODUCTS_STMT->bindParam(":order_id", $_GET["fFetchTargetOrder"], PDO::PARAM_STR);
-
-        if ($LISTING_PRODUCTS_STMT->execute()) {
-
-            $fetchData = $LISTING_PRODUCTS_STMT->fetch(PDO::FETCH_ASSOC);
-
-            $bProductIDs = explode(',', $fetchData["p_id"]);
-            $bQuantities = explode(',', $fetchData["amount"]);
+        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
+            $current_page = (int) $_GET['page'];
+        } else {
+            $current_page = 1;
         }
-    }
+
+        $start_index = ($current_page - 1) * $records_per_page;
+
+        $stmt->bindParam(':start_index', $start_index, PDO::PARAM_INT);
+        $stmt->bindParam(':records_per_page', $records_per_page, PDO::PARAM_INT);
     ?>
 </head>
 
@@ -182,67 +171,88 @@
                             <div class="table-responsive">
                                 <table class="table app-table-hover mb-0 text-left">
 
-                                for(){    
-                                    <thead>
-                                        <tr>
-                                            <th class="cell">訂單 ID</th>
-                                            <th class="cell">購買時間</th>
-                                            <th class="cell">商品ID</th>
-                                            <th class="cell">商品圖片</th>
-                                            <th class="cell">數量</th>
-                                            <th class="cell">價格</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php
-                                        $records_per_page = 5;
+                                    <?php
 
-                                        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
-                                            $current_page = (int) $_GET['page'];
-                                        } else {
-                                            $current_page = 1;
-                                        }
+                                        // =============================================== //
 
-                                        $start_index = ($current_page - 1) * $records_per_page;
+                                        $FETCH_ORDER_INFO = "
 
-                                        $stmt->bindParam(':start_index', $start_index, PDO::PARAM_INT);
-                                        $stmt->bindParam(':records_per_page', $records_per_page, PDO::PARAM_INT);
-                                        if (($_SERVER["REQUEST_METHOD"] === "GET") && !(empty($_GET["fFetchTargetOrder"])) && ($_GET["fFetchTargetOrder"]) && !(empty($_GET["fRequestViewOrder"])) && ($_GET["fRequestViewOrder"])) {
+                                            SELECT 
+                                                *
+                                            FROM 
+                                                `orders` 
+                                            WHERE 
+                                                buyer_id = :buyer_id
+                                            LIMIT
+                                                :start , :recs_perpage
+                                        ";
 
-                                            $FETCH_PRODUCT_INFO = "
+                                        $fetch_order_stmt = $db -> prepare($FETCH_ORDER_INFO);
+                                        $fetch_order_stmt -> bindParam(":buyer_id",     $_SESSION["userid"], PDO::PARAM_INT);
+                                        $fetch_order_stmt -> bindParam(":start",        $_SESSION["userid"], PDO::PARAM_INT); // !
+                                        $fetch_order_stmt -> bindParam(":recs_perpage", $_SESSION["userid"], PDO::PARAM_INT); // !
 
-                                                SELECT 
-                                                    * 
-                                                FROM 
-                                                    `products` 
-                                                WHERE 
-                                                    p_id = :p_id
-                                            ";
 
-                                            for ($i = 0; ($i < count($bProductIDs)); $i++) {
+                                        if($fetch_order_stmt -> execute()){
 
-                                                $FETCH_STMT = $db->prepare($FETCH_PRODUCT_INFO);
-                                                $FETCH_STMT->bindParam(":p_id", $bProductIDs[$i], PDO::PARAM_INT);
+                                            while($order_record = $fetch_order_stmt -> fetch(PDO::FETCH_ASSOC)){
 
-                                                if ($FETCH_STMT->execute()) {
+                                                $orderid    = $order_record["id"];
+                                                $orderDate  = $order_record["dat"];
+                                                $order_pids = explode(",", $order_record["p_id"]);
+                                                $order_qtys = explode(",", $order_record["amount"]);
+                                                
+                                                echo '
+                                                    <thead>
+                                                        <tr>
+                                                            <th class="cell">訂單 ID: {$orderid}</th>
+                                                            <th class="cell">購買時間: {$orderDate}</th>
+                                                        </tr>
+                                                    </thead>
+                                                ';
 
-                                                    $bProductInfo = $FETCH_STMT->fetch(PDO::FETCH_ASSOC);
+                                                for($i = 0; $i < min(count($order_pids), count($order_qtys)); $i++){
 
-                                                    $bIndividualTotalPrice = $bQuantities[$i] * $bProductInfo["p_price"];
+                                                    $FETCH_PRODUCT_INFO = "
 
-                                                    echo "
+                                                        SELECT 
+                                                            * 
+                                                        FROM 
+                                                            `products` 
+                                                        WHERE 
+                                                            p_id = :p_id
+                                                    ";
 
-                                                            <tr>
-                                                               <td>						 #{$bProductInfo["order_id"]}	</td>
-                                                               <td>						  {$bProductInfo["date"]}		</td>
-                                                               <td 	                      {$bProductInfo["p_id"]}		</td>
-                                                               <td 	                      {$bQuantities[$i]}			</td>
-                                                               <td 	                      {$bIndividualTotalPrice}		</td>
-                                                            </tr>
-                                                        ";
+                                                    $fetch_product_stmt = $db -> prepare($FETCH_PRODUCT_INFO);
+                                                    $fetch_product_stmt-> bindParam(":p_id", $order_pids[$i], PDO::PARAM_INT);
+
+                                                    if($fetch_product_stmt-> execute()){
+
+                                                        echo '
+                                                        
+                                                            <tbody>
+
+                                                                <tr>
+                                                                    <td>						 #{$bProductInfo["order_id"]}	</td>
+                                                                    <td>						  {$bProductInfo["date"]}		</td>
+                                                                    <td> 	                      {$bProductInfo["p_id"]}		</td>
+                                                                    <td> 	                      {$bQuantities[$i]}			</td>
+                                                                    <td> 	                      {$bIndividualTotalPrice}		</td>
+                                                                </tr>
+
+                                                            </tbody>
+                                                        ';
+                                                    }
                                                 }
                                             }
+                                        }else{
+
+
                                         }
+                                    ?>
+
+                                    <!-- Pagination -->
+                                    <?php
                                         $total_records_stmt->execute();
                                         $total_records = $total_records_stmt->fetchColumn();
 
@@ -260,9 +270,9 @@
                                                 echo "<a href='$page_link'>$i</a> ";
                                             }
                                         }
-                                        ?>
-                                    </tbody>
-                                }
+                                    ?>
+                                    ?>
+                                
                                 </table>
                             </div>
                         </div>
