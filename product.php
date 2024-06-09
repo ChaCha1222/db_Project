@@ -132,7 +132,7 @@
                         <a href="sellProduct.php" class="nav-link">上架商品</a>
                         <a href="myProducts.php" class="nav-link">我的商品</a>
                         <a href="myCart.php" class="nav-link">我的購物車</a>
-                        <a href="myDetail.php" class="nav-link">購買紀錄</a>
+                        <a href="myPurchaseDetail.php" class="nav-link">購買紀錄</a>
                     </div>
                     <li class="nav-item">
                         <a class="nav-link" href="aboutme.php">
@@ -191,8 +191,8 @@
 
                             // 準備 SQL 查詢，擷取指定範圍內的資料
                             $sql = "SELECT products.*, users.username 
-            FROM products 
-            JOIN users ON products.sellerID = users.u_id";
+                                    FROM products 
+                                    JOIN users ON products.sellerID = users.u_id";
 
                             // 添加搜尋條件
                             if (!empty($search_keyword)) {
