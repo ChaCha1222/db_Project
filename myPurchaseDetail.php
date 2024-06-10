@@ -142,7 +142,7 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="aboutme.php">
                                     <i class="fa fa-user" aria-hidden="true"></i>
-                                    用戶名的個人資訊
+                                    <?php echo $_SESSION['username']; ?>的個人資訊
                                 </a>
                             </li>
                             <li class="nav-item">
