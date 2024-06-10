@@ -131,8 +131,6 @@
                     </form>
                     <div class="link-container text-center mt-3">
                         <a href="register.php">註冊新帳號</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                        <span class="divider">|</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                        <a href="forgotPassword.php">忘記密碼？</a>
                     </div>
                 </div>
             </div>

@@ -162,7 +162,7 @@ session_start();
         <div class="collapse navbar-collapse" id="navbarCollapse">
             <div class="navbar-nav ms-auto p-4 p-lg-0">
                 <a href="manageAccounts.php" class="nav-link">管理使用者</a>
-                <a class="nav-link" href="aboutme.php">
+                <a class="nav-link">
                     <i class="fa fa-user" aria-hidden="true"></i>
                     <?php echo $_SESSION['username']; ?>的個人資訊
                 </a>
@@ -178,8 +178,7 @@ session_start();
         echo "<tr><th>ID</th><th>身分組</th><th>使用者姓名</th><th>使用者名稱</tr>";
         while ($user = $stmt->fetch(PDO::FETCH_ASSOC)) {
             echo "<tr><td>" . htmlspecialchars($user['u_id']) . "</td><td>" . htmlspecialchars($user['role']) . "</td><td>" . htmlspecialchars($user['userRealName']) . "</td><td>" . htmlspecialchars($user['username']) . "</td><td>";
-            echo "<td>" . ((($user['role'] === "1")) ? "</td>" : "<form action=\"manageAccounts.php\" method=\"post\" onsubmit=\"return confirmDelete();\"><input type=\"hidden\" name=\"deleteID\" value=\"" . $user['ID'] . "\"><button type=\"submit\" name=\"removeUserFlag\" value=\"true\" style=\"background-color: #ff4d4d; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; transition: background 0.3s ease;\">刪除使用者</button></form></td>");
-            echo "<td><form action=\"manageAccounts.php\" method=\"post\" onsubmit=\"return confirmDelete();\"><input type=\"hidden\" name=\"resetPasswordID\" value=\"" . $user['ID'] . "\"><button type=\"submit\" name=\"resetFlag\" value=\"true\" style=\"background-color: #0080FF; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; transition: background 0.3s ease;\">重設密碼</button></form></td>";
+            echo "<td>" . ((($user['role'] === "1")) ? "</td>" : "<form action=\"manageAccounts.php\" method=\"post\" onsubmit=\"return confirmDelete();\"><input type=\"hidden\" name=\"deleteID\" value=\"" . $user['u_id'] . "\"><button type=\"submit\" name=\"removeUserFlag\" value=\"true\" style=\"background-color: #ff4d4d; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; transition: background 0.3s ease;\">刪除使用者</button></form></td>");
             echo "</tr>";
         }
         echo "</table>";
@@ -202,15 +201,12 @@ session_start();
     if (($_SERVER['REQUEST_METHOD'] === "POST") && ($_POST['removeUserFlag'])) {
         include "database_connection.php";
         $deleteUserID = $_POST['deleteID'];
-        $stmt = $db->prepare("DELETE FROM `users` WHERE ID = :deleteID"); //Remove user from users table
+        $stmt = $db->prepare("DELETE FROM `users` WHERE u_id = :deleteID"); //Remove user from users table
         $stmt->bindParam(':deleteID', $deleteUserID);
         $stmt->execute();
 
-        $removeFromCart = $db->prepare("DELETE FROM `cart` WHERE ID = :deleteID"); //Remove user-related ID from cart table
-        $removeFromCart->bindParam(':deleteID', $deleteUserID);
-        $removeFromCart->execute();
 
-        $removeFromProduct = $db->prepare("DELETE FROM `product` WHERE ownerID = :deleteID"); //Remove user-related ownerID from Product table
+        $removeFromProduct = $db->prepare("DELETE FROM `products` WHERE sellerID = :deleteID"); //Remove user-related ownerID from Product table
         $removeFromProduct->bindParam(':deleteID', $deleteUserID);
         $removeFromProduct->execute();
         echo "<script>alert('已刪除使用者相關所有資料'); window.location.href='manageAccounts.php';</script>";
@@ -218,25 +214,6 @@ session_start();
     }
     ?>
 
-    <?php
-    if (($_SERVER['REQUEST_METHOD'] === "POST") && ($_POST['resetFlag'])) {
-        include "database_connection.php";
-        //find username
-        $resetPasswordID = $_POST['resetPasswordID'];
-        $findUsername = $db->prepare("SELECT username FROM `users` WHERE ID = :ID");
-        $findUsername->bindParam(':ID', $resetPasswordID);
-        $findUsername->execute();
-        $user = $findUsername->fetch(PDO::FETCH_ASSOC);
-
-        $stmt = $db->prepare("UPDATE `users` SET `password` = :newPassword WHERE ID = :resetPasswordID"); // await
-        $newPassword = password_hash($user['username'], PASSWORD_DEFAULT);
-        $stmt->bindParam(':newPassword', $newPassword);
-        $stmt->bindParam(':resetPasswordID', $resetPasswordID);
-        $stmt->execute();
-        echo "<script>alert('密碼已經更新為使用者名稱'); window.location.href='manageAccounts.php';</script>";
-        exit;
-    }
-    ?>
 
     <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>

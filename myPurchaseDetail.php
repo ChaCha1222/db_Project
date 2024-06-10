@@ -92,24 +92,21 @@
     </style>
 
     <?php
-        include "database_connection.php";
-        session_start();
+    include "database_connection.php";
+    session_start();
     ?>
 
     <?php
-        
-        $records_per_page = 5;
 
-        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
-            $current_page = (int) $_GET['page'];
-        } else {
-            $current_page = 1;
-        }
+    $records_per_page = 5;
 
-        $start_index = ($current_page - 1) * $records_per_page;
+    if (isset($_GET['page']) && is_numeric($_GET['page'])) {
+        $current_page = (int) $_GET['page'];
+    } else {
+        $current_page = 1;
+    }
 
-        $stmt->bindParam(':start_index', $start_index, PDO::PARAM_INT);
-        $stmt->bindParam(':records_per_page', $records_per_page, PDO::PARAM_INT);
+    $start_index = ($current_page - 1) * $records_per_page;
     ?>
 </head>
 
@@ -173,9 +170,9 @@
 
                                     <?php
 
-                                        // =============================================== //
-
-                                        $FETCH_ORDER_INFO = "
+                                    // =============================================== //
+                                    
+                                    $FETCH_ORDER_INFO = "
 
                                             SELECT 
                                                 *
@@ -183,37 +180,39 @@
                                                 `orders` 
                                             WHERE 
                                                 buyer_id = :buyer_id
-                                            LIMIT
-                                                :start , :recs_perpage
+                                            LIMIT :start_index , :records_per_page
                                         ";
 
-                                        $fetch_order_stmt = $db -> prepare($FETCH_ORDER_INFO);
-                                        $fetch_order_stmt -> bindParam(":buyer_id",     $_SESSION["userid"], PDO::PARAM_INT);
-                                        $fetch_order_stmt -> bindParam(":start",        $_SESSION["userid"], PDO::PARAM_INT); // !
-                                        $fetch_order_stmt -> bindParam(":recs_perpage", $_SESSION["userid"], PDO::PARAM_INT); // !
+                                    $fetch_order_stmt = $db->prepare($FETCH_ORDER_INFO);
+                                    $fetch_order_stmt->bindParam(":buyer_id", $_SESSION["u_id"], PDO::PARAM_INT);
+                                    $fetch_order_stmt->bindParam(":start_index", $start_index, PDO::PARAM_INT);
+                                    $fetch_order_stmt->bindParam(":records_per_page", $records_per_page, PDO::PARAM_INT);
 
 
-                                        if($fetch_order_stmt -> execute()){
+                                    if ($fetch_order_stmt->execute()) {
 
-                                            while($order_record = $fetch_order_stmt -> fetch(PDO::FETCH_ASSOC)){
+                                        while ($order_record = $fetch_order_stmt->fetch(PDO::FETCH_ASSOC)) {
 
-                                                $orderid    = $order_record["id"];
-                                                $orderDate  = $order_record["dat"];
-                                                $order_pids = explode(",", $order_record["p_id"]);
-                                                $order_qtys = explode(",", $order_record["amount"]);
-                                                
-                                                echo '
+                                            $order_id = $order_record["order_id"];
+                                            $date = $order_record["date"];
+                                            $order_p_id = explode(",", $order_record["p_id"]);
+                                            $order_amount = explode(",", $order_record["amount"]);
+
+                                            echo "
                                                     <thead>
                                                         <tr>
-                                                            <th class="cell">訂單 ID: {$orderid}</th>
-                                                            <th class="cell">購買時間: {$orderDate}</th>
+                                                            <th>訂單 ID: {$order_id}</th>  
+                                                            <th></th> 
+                                                            <th></th>
+                                                            <th></th>                                                       
+                                                            <th>購買時間: {$date}</th>
                                                         </tr>
                                                     </thead>
-                                                ';
+                                                ";
 
-                                                for($i = 0; $i < min(count($order_pids), count($order_qtys)); $i++){
+                                            for ($i = 0; $i < min(count($order_p_id), count($order_amount)); $i++) {
 
-                                                    $FETCH_PRODUCT_INFO = "
+                                                $FETCH_PRODUCT_INFO = "
 
                                                         SELECT 
                                                             * 
@@ -223,56 +222,52 @@
                                                             p_id = :p_id
                                                     ";
 
-                                                    $fetch_product_stmt = $db -> prepare($FETCH_PRODUCT_INFO);
-                                                    $fetch_product_stmt-> bindParam(":p_id", $order_pids[$i], PDO::PARAM_INT);
+                                                $fetch_product_stmt = $db->prepare($FETCH_PRODUCT_INFO);
+                                                $fetch_product_stmt->bindParam(":p_id", $order_p_id[$i], PDO::PARAM_INT);
 
-                                                    if($fetch_product_stmt-> execute()){
+                                                if ($fetch_product_stmt->execute()) {
+                                                    $Product = $fetch_product_stmt->fetch(PDO::FETCH_ASSOC);
+                                                    $TOTALPRICE = $order_amount[$i] * $Product["p_price"];
 
-                                                        echo '
+                                                    echo "
                                                         
                                                             <tbody>
 
                                                                 <tr>
-                                                                    <td>						 #{$bProductInfo["order_id"]}	</td>
-                                                                    <td>						  {$bProductInfo["date"]}		</td>
-                                                                    <td> 	                      {$bProductInfo["p_id"]}		</td>
-                                                                    <td> 	                      {$bQuantities[$i]}			</td>
-                                                                    <td> 	                      {$bIndividualTotalPrice}		</td>
+                                                                    <td>物品ID:					  {$Product["p_id"]}	    </td>
+                                                                    <td></td>
+                                                                    <td>物品名稱:					  {$Product["p_name"]}	    </td>
+                                                                    <td>物品數量: 	                      {$order_amount[$i]}		</td>
+                                                                    <td>價錢: 	                      {$TOTALPRICE}		        </td>
                                                                 </tr>
 
                                                             </tbody>
-                                                        ';
-                                                    }
+                                                        ";
                                                 }
                                             }
-                                        }else{
-
-
                                         }
+                                    } else {
+                                        echo "錯誤";
+                                    }
                                     ?>
 
                                     <!-- Pagination -->
                                     <?php
-                                        $total_records_stmt->execute();
-                                        $total_records = $total_records_stmt->fetchColumn();
+                                    $total_records_stmt = $db->prepare("SELECT COUNT(*) FROM `orders` WHERE buyer_id = :buyer_id");
+                                    $total_records_stmt->bindParam(":buyer_id", $_SESSION["u_id"], PDO::PARAM_INT);
+                                    $total_records_stmt->execute();
+                                    $total_records = $total_records_stmt->fetchColumn();
 
-                                        // 計算總頁數
-                                        $total_pages = ceil($total_records / $records_per_page);
-                                        echo "<br>分頁";
-                                        for ($i = 1; $i <= $total_pages; $i++) {
-                                            // 顯示分頁連結時也包含搜尋關鍵字
-                                            $page_link = "?page=$i";
-                                            if (!empty($search_keyword)) {
-                                                $page_link .= "&keyword=$search_keyword";
-                                            }
-                                            // 檢查當前頁碼是否小於或等於總頁數，只有在這種情況下才生成分頁連結
-                                            if ($i <= $total_pages) {
-                                                echo "<a href='$page_link'>$i</a> ";
-                                            }
-                                        }
+                                    // 計算總頁數
+                                    $total_pages = ceil($total_records / $records_per_page);
+                                    echo "<br>分頁";
+                                    for ($i = 1; $i <= $total_pages; $i++) {
+                                        $page_link = "?page=$i";
+                                        echo "<a href='$page_link'>$i</a> ";
+                                    }
                                     ?>
-                                    ?>
-                                
+
+
                                 </table>
                             </div>
                         </div>
